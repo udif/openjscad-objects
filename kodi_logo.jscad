@@ -3,7 +3,7 @@
 // date: Mon May 29 2017 00:45:39 GMT+0300 (Jerusalem Daylight Time)
 // source: kodi-logo.svg
 //
-function main(params) {
+logo = function() {
   var cag0 = new CAG();
     var cag1 = new CAG();
       var cag2 = new CAG();

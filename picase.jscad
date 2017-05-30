@@ -3,6 +3,7 @@
 // license    : ISC License
 // file       : picase.jscad
 
+include('kodi_logo.jscad')
 /* exported main, getParameterDefinitions */
 function getParameterDefinitions() {
 
@@ -18,7 +19,7 @@ function getParameterDefinitions() {
         type: 'choice',
         values: ['top', 'bottom', 'assembled'],
         captions: ['top', 'bottom', 'assembled'],
-        initial: 'assembled',
+        initial: 'top',
         caption: 'Part:'
     }, {
         name: 'thickness',
@@ -36,6 +37,11 @@ function getParameterDefinitions() {
         checked: true,
         caption: 'Camera:'
     }, {
+        name: 'logo',
+        type: 'checkbox',
+        checked: true,
+        caption: 'Render Logo:'
+    }, {
         name: 'display',
         type: 'checkbox',
         checked: true,
@@ -43,7 +49,7 @@ function getParameterDefinitions() {
     }, {
         name: 'text',
         type: 'text',
-        initial: 'RPi',
+        initial: '',
         caption: 'Text:'
     }];
 }
@@ -153,6 +159,17 @@ function main(params) {
             return connector.translate([0, connectorarea.y * position, 0]);
         }));
     }
+	
+	if (params.logo) {
+        var uselogo = true;
+        var logoarea = topsupports.combine().enlarge([-15, -5, 0]);
+        var logosize = logoarea.size();
+        var logo_3d = logo().extrude({offset:[0,0,params.thickness+1]})
+            .snap(box.parts.top, 'z', 'inside+')
+            .align(logoarea, 'xy')
+            .fit([logosize.x * 0.75, logosize.y * 0.75, 0], true)
+            .translate([-6, -2, 0.05]);
+	}
 
 
     var ribbonhole = Parts.Board(2, 17, 1, thickness * 2);
@@ -163,6 +180,7 @@ function main(params) {
                 .combine('top')
                 .union(topsupports.combine().snap(box.parts.top, 'z', 'outside+'))
                 .subtract(leftcutouts.unionIf(label, uselabel))
+                .subtract(leftcutouts.unionIf(logo_3d, uselogo))
                 .subtractIf(function () {
                     return BPlus.parts.gpio.snap(box.parts.top, 'z', 'inside+').enlarge([2, 1, thickness * 3]);
                 }, params.gpio)
