@@ -26,20 +26,29 @@ function main(params) {
     CSG.defaultResolution2D = resolutions[params.resolution][1];
     util.init(CSG);
 
+	var base_z = 2.2
+	var base_stop_z = 4.5
 	var base = CSG.cube({
 			center: [0,0,0],
-			radius: [17,36,2]
+			radius: [17.5/2,36/2,base_z/2]
+		}).rotateX(270).chamfer(0.5, 'z+').rotateX(90);
+	var base_stop = CSG.cube({
+			center: [0,0,0],
+			radius: [24/2,2/2,base_stop_z/2]
 		});
 	var axis = CSG.cube({
 			center: [0,0,0],
-			radius: [10,2,10]
+			radius: [10/2,2/2,6/2]
 		});
 	var yi = CSG.cube({
 			center: [0,0,0],
-			radius: [10,7.7,2]
-		});
-	var base_axis  = base.union(axis.snap(base, 'z', 'outside-'));
-	var base_axis_yi = base_axis.union(yi.snap(base_axis, 'z', 'outside-'));
+			radius: [10/2,7.7/2,2/2]
+		}).chamfer(0.5, 'z+').rotateX(180).chamfer(0.5, 'z+').rotateX(180);
+	var base_axis  = base.union([
+		axis.snap(base, 'z', 'outside-'),
+		base_stop.snap(base, 'y', 'outside-').translate([0,0,(base_stop_z-base_z)/2])
+	]);
+	var base_axis_yi = base_axis.union(yi.snap(base_axis, 'z', 'inside+'));
 	
 	return base_axis_yi
 }	
