@@ -28,6 +28,7 @@ function main(params) {
 
 	var base_z = 2.2
 	var base_stop_z = 4.5
+	var axis_height = 7
 	var base = CSG.cube({
 			center: [0,0,0],
 			radius: [17.5/2,36/2,base_z/2]
@@ -38,14 +39,25 @@ function main(params) {
 		});
 	var axis = CSG.cube({
 			center: [0,0,0],
-			radius: [10/2,2/2,6/2]
+			radius: [10/2,2/2,axis_height/2]
 		});
+	var axis_stop = CSG.cube({
+			center: [0,0,0],
+			radius: [2/2,7.7/2,axis_height/2]
+		});
+	var base_stiffner = CSG.cube({
+			center: [0,0,0],
+			radius: [2/2,36/2,2/2]
+		});
+	var axis_plus_stop = axis.union(axis_stop.snap(axis, 'x', 'outside-'))
+	                         .union(base_stiffner.snap(axis, 'x', 'outside-').translate([0,0,-(axis_height-2)/2]))
+	                         .union(base_stiffner.snap(axis, 'x', 'outside+').translate([0,0,-(axis_height-2)/2]));
 	var yi = CSG.cube({
 			center: [0,0,0],
-			radius: [10/2,7.7/2,2/2]
-		}).chamfer(0.5, 'z+').rotateX(180).chamfer(0.5, 'z+').rotateX(180);
+			radius: [7.7/2,2/2,10/2]
+		}).chamfer(0.5, 'z+').rotateX(90).rotateZ(-90);//.chamfer(0.5, 'z+').rotateX(180);
 	var base_axis  = base.union([
-		axis.snap(base, 'z', 'outside-'),
+		axis_plus_stop.snap(base, 'z', 'outside-'),
 		base_stop.snap(base, 'y', 'outside-').translate([0,0,(base_stop_z-base_z)/2])
 	]);
 	var base_axis_yi = base_axis.union(yi.snap(base_axis, 'z', 'inside+'));
