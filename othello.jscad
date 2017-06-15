@@ -28,9 +28,17 @@ function main(params) {
     CSG.defaultResolution2D = resolutions[params.resolution][1];
     //util.init(CSG);
 
-	var r = 27.8507;
+    // Radius of part
 	var base_r = 25/2;
+	// Height of (half) part
 	var base_height = 5.1/2;
+	// Width of the flat ring at the edge
+	var ring_width = 2.5;
+	// Max Depth of curve in the middle
+	var curve_depth=1.8;
+	// Solve R^2 = (R-curve_depth)^2+(base_r-ring_width)^2
+	// This is not a quadratic equation because R^2 cancels on both sides
+	var r = (Math.pow((base_r-ring_width), 2)+Math.pow(curve_depth, 2))/(2*curve_depth)
 	var base = CSG.cylinder({
 			start: [0,0,0],
 			end: [0, 0, base_height],
