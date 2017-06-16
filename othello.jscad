@@ -43,17 +43,17 @@ function main(params) {
 	var ring_width = 2.5;
 	// Max Depth of curve in the middle
 	var curve_depth=1.8;
-	// Where to place connecting ring
-	var conn_r = base_r-ring_width/2;
 	// Width of connecting ring
-	var conn_w = 1;
-	// extra width for tolerance
-	var conn_w_tol = 0.1;
+	var conn_w = 2 ; // ring_width/3;
 	// Height of connecting ring
 	var conn_h = 1;
+	// extra width for tolerance
+	var conn_tol = 0.15;
 	
 	if (params.part == 'ring') {
-		conn_h *=2; // when constructing ring needs to be twice as high to cover both parts
+		conn_h = (0.75 * conn_h) * 2; // when constructing ring needs to be twice as high to cover both parts
+	} else {
+		conn_h += conn_tol;
 	}
 	// Solve R^2 = (R-curve_depth)^2+(base_r-ring_width)^2
 	// This is not a quadratic equation because R^2 cancels on both sides
@@ -64,19 +64,19 @@ function main(params) {
 			radius: base_r
 		}); //.rotateX(270).chamfer(0.5, 'z+').rotateX(90);
 	var sphere_cut = CSG.sphere({
-			center: [0, 0, r+base_height-1.8],
-			radius: r
-		});
+		center: [0, 0, r+base_height-1.8],
+		radius: r
+	});
 	var ring_outer = CSG.cylinder({
-			start: [0,0,0],
-			end: [0, 0, conn_h],
-			radius: (conn_r+(conn_w-conn_w_tol)/2)
-		});
+		start: [0,0,0],
+		end: [0, 0, conn_h],
+		radius: (base_r-conn_w-conn_tol/2)
+	});
 	var ring_inner = CSG.cylinder({
-			start: [0,0,0],
-			end: [0, 0, conn_h],
-			radius: (conn_r-(conn_w-conn_w_tol)/2)
-		});
+		start: [0,0,0],
+		end: [0, 0, conn_h],
+		radius: (base_r-2*conn_w+conn_tol/2)
+	});
 	var ring = ring_outer.subtract(ring_inner);
 	var flat_piece = base.subtract(sphere_cut);
 	var piece_ring = flat_piece.subtract(ring);
@@ -88,6 +88,10 @@ function main(params) {
 			return piece_ring;
 			
 		case 'ring':
-			return ring;
+			var cutout = CSG.cube ({
+				radius: [2, base_r, conn_h/2]
+			}).translate([0, base_r/2, conn_h/2]);
+			ring_cutout = ring.subtract(cutout);
+			return ring_cutout;
 	}
 }	
