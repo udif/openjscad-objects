@@ -3,6 +3,13 @@
 // license    : ISC License
 // file       : picase.jscad
 
+include ('jscad-utils.jscad')
+include ('jscad-utils-color.jscad')
+include ('jscad-raspberrypi.jscad')
+include ('jscad-utils-parts.jscad')
+include ('jscad-boxes.jscad')
+include ('kodi_logo.jscad')
+
 /* exported main, getParameterDefinitions */
 function getParameterDefinitions() {
 
@@ -115,7 +122,7 @@ function main(params) {
             .align(interior, 'xyz');
     });
 
-    box = Boxes.RabetTopBottom(box, thickness, 0.3, {
+    box = Boxes.RabettTopBottom(box, thickness, 0.3, {
         removableTop: true,
         removableBottom: false
     });
