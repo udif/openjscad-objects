@@ -23,8 +23,8 @@ function getParameterDefinitions() {
     }, {
         name: 'part',
         type: 'choice',
-        values: ['top', 'bottom', 'assembled'],
-        captions: ['top', 'bottom', 'assembled'],
+        values: ['top', 'bottom', 'assembled', 'board'],
+        captions: ['top', 'bottom', 'assembled', 'board-only'],
         initial: 'assembled',
         caption: 'Part:'
     }, {
@@ -212,7 +212,9 @@ function main(params) {
         },
         assembled: function () {
             return union([BPlus.combine(), parts.top(), parts.bottom()]);
-
+        },
+        board: function () {
+            return BPlus.combine();
         }
     };
 
