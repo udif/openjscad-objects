@@ -28,6 +28,13 @@ function getParameterDefinitions() {
         initial: 'assembled',
         caption: 'Part:'
     }, {
+        name: 'type',
+        type: 'choice',
+        values: ['b_v1', 'b_v2', 'bplus', 'b3'],
+        captions: ['RaspberryPi B v1', 'RaspberryPi B v1', 'RaspberryPi B+/2', 'RaspberryPi 3'],
+        initial: 'b3',
+        caption: 'Board Type:'
+    }, {
         name: 'thickness',
         type: 'float',
         initial: 2.0,
@@ -75,7 +82,26 @@ function main(params) {
     util.init(CSG);
 
     var thickness = params.thickness;
-    var BPlus = RaspberryPi.BPlus(true);
+    var BPlus;
+	switch (params.type) {
+		case 'b_v1':
+			BPlus = RaspberryPi.B(false);
+			break;
+			
+		case 'b_v2':
+			BPlus = RaspberryPi.B(true);
+			break;
+			
+		case 'blus':
+			BPlus = RaspberryPi.BPlus(false);
+			break;
+			
+		case 'b3':
+			BPlus = RaspberryPi.BPlus(true);
+			break;
+
+		default:
+	}
 
     BPlus.add(RaspberryPi.Parts.UsbWifiAdapter(BPlus.parts.usb2, 0).enlarge([1, 1, 1]), 'usb20Clearance', true);
     BPlus.add(RaspberryPi.Parts.UsbWifiAdapter(BPlus.parts.usb2, 1).enlarge([1, 1, 1]), 'usb21Clearance', true);
