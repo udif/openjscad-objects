@@ -84,8 +84,12 @@ function calcLeftSide(o, mb) {
 RaspberryPi = {
 
     Parts: {
+        BMotherboard: function () {
+            return Parts.Board(85.6, 53.98, 2, 1.32).color('green');
+        },
+
         BPlusMotherboard: function () {
-            return Parts.Board(85, 56, 2, 1.32).color('green');
+            return Parts.Board(85, 56, 2, 1.32).color('green'); // corner radius 3 ??
         },
 
         MountingHole: function (diameter, height) {
@@ -135,6 +139,26 @@ RaspberryPi = {
             return Parts.Cube([15, 11.57, 7.4]).color('lightgray');
         },
 
+        RCAJack: function () { // TODO fix this, at the moment its just a copy of AvJack
+            var block = Parts.Cube([6.9, 12.47, 5.6]).color('lightgray');
+            var cyl = Parts.Cylinder(6, 2)
+                .rotateX(90)
+                .align(block, 'xz')
+                .snap(block, 'y', 'outside+')
+                .color('black');
+            return util.group('block,cylinder', [block, cyl]);
+        },
+
+        AudioJack: function () { // TODO fix this, at the moment its just a copy of AvJack
+            var block = Parts.Cube([6.9, 12.47, 5.6]).color('lightgray');
+            var cyl = Parts.Cylinder(6, 2)
+                .rotateX(90)
+                .align(block, 'xz')
+                .snap(block, 'y', 'outside+')
+                .color('black');
+            return util.group('block,cylinder', [block, cyl]);
+        },
+
         AvJack: function () {
             var block = Parts.Cube([6.9, 12.47, 5.6]).color('lightgray');
             var cyl = Parts.Cylinder(6, 2)
@@ -149,12 +173,22 @@ RaspberryPi = {
             return Parts.Cube([3, 22.4, 5.7]).color('gray');
         },
 
-        Gpio: function (mb) {
-            var gpio = Parts.Cube([50.64, 5, 8.72]).color('gray');
+        Gpio26: function (mb) {
+            var gpio = Parts.Cube([33.02, 5, 8.72]).color('gray');
             return mb ? gpio
                 .snap(mb, 'xy', 'inside-')
                 .snap(mb, 'z', 'outside-')
-                .midlineTo('x', 32.5)
+                .midlineTo('x', 17.09) // 33.6-13*2.54/2
+                .midlineTo('y', 50.42) : // 54-2.54-1.04
+                gpio;
+        },
+
+        Gpio: function (mb) {
+            var gpio = Parts.Cube([50.64, 5, 8.72]).color('gray');  // 20*2.54=50.8 ??
+            return mb ? gpio
+                .snap(mb, 'xy', 'inside-')
+                .snap(mb, 'z', 'outside-')
+                .midlineTo('x', 32.5) // 7+50.8/2=32.4 ??
                 .midlineTo('y', 52.5) :
                 gpio;
         },
@@ -196,6 +230,44 @@ RaspberryPi = {
             //     .align(connector, 'y')
             //     .align(connector, 'z');
             return connector.color('blue');
+        }
+    },
+
+    BMounting: {
+        holes: function (mb, options) {
+            options = util.defaults(options, {
+                height: 8
+            });
+            // var hole = LeftSide(RaspberryPi.Parts.MountingHole(options && options.diameter || undefined, options && options.height || 8), mb);
+            var hole = RaspberryPi.Parts.MountingHole(options.diameter, options.height)
+                .snap(mb, 'xy', 'inside-')
+                .align(mb, 'z');
+
+            var holes = [
+                hole.midlineTo('x', 5).midlineTo('y', 12.5),
+                hole.midlineTo('x', 85.6-25.5).midlineTo('y', 54-18)
+            ];
+
+            return util.group('hole1,hole2', holes);
+        },
+        pads: function (mb, options) {
+            options = util.defaults(options, {
+                snap: 'outside-',
+                height: 4
+            });
+            var pad = RaspberryPi.Parts.Mountingpad(undefined, options.height)
+                .snap(mb, 'z', options.snap)
+                .snap(mb, 'xy', 'inside-');
+
+            var pads = [
+                pad.midlineTo('x', 5).midlineTo('y', 12.5),
+                pad.midlineTo('x', 85.6-25.5).midlineTo('y', 54-18)
+            ];
+
+            // var b = mb.getBounds();
+            return util.group('pad1,pad2', pads);
+            // });
+
         }
     },
 
@@ -242,12 +314,78 @@ RaspberryPi = {
     },
 
     /**
+     * Returns a complete RaspberryPi B model.
+     * ![bplus example](jsdoc2md/bplus.png)
+     */
+    B: function (v2) {
+
+        var mb = this.Parts.BMotherboard();
+		var mounting = this.BMounting;
+
+        var group = util.group('mb', mb);
+        // Right side parts
+        group.add(RightSide(this.Parts.EthernetJack(), mb)
+            .midlineTo('y', 9.95), 'ethernet');
+
+        var usb = this.Parts.UsbJack();
+        var usbt = util.array.add(usb.parts.flange.calcSnap(mb, 'x', 'inside+'), [2, 0, 0],
+            usb.parts.body.calcSnap(mb, 'y', 'inside-'),
+            usb.parts.body.calcSnap(mb, 'z', 'outside-'));
+
+        group.add(usb.clone().translate(
+            usbt,
+            util.calcmidlineTo(usb.parts.body, 'y', 30.55)
+        ), 'usb1', false, 'usb1');
+
+        group.add(this.Parts.MicroUsb().snap(mb, 'z', 'outside-').midlineTo('x', 10.6).translate([0, -1, 0]), 'microusb'); // TODO move to different side 
+
+        group.add(this.Parts.Hdmi().snap(mb, 'z', 'outside-').midlineTo('x', 44.3).translate([0, -2, 0]), 'hdmi');
+
+        group.add(this.Parts.RCAJack() // fix real location
+            .snap('block', mb, 'z', 'outside-')
+            .midlineTo('block', 'x', 53.5), 'rcajack', false, 'rcajack');
+
+        group.add(this.Parts.AudioJack() // fix real location
+            .snap('block', mb, 'z', 'outside-')
+            .midlineTo('block', 'x', 53.5), 'audiojack', false, 'audiojack');
+
+        group.add(this.Parts.Ribbon().snap(mb, 'z', 'outside-').midlineTo('x', 45), 'camera');
+
+        group.add(this.Parts.Ribbon().snap(mb, 'z', 'outside-').midlineTo('x', 3.5).midlineTo('y', 28), 'display');
+
+        group.add(this.Parts.Gpio().snap(mb, 'z', 'outside-').midlineTo('x', 32.5).midlineTo('y', 52.5), 'gpio');
+
+        if (1) {
+            group.add(this.Parts.BoardLed().snap(mb, 'z', 'outside-').midlineTo('x', 1.1).midlineTo('y', 7.9).color('lightgreen'), 'activityled');
+            group.add(this.Parts.BoardLed().snap(mb, 'z', 'outside-').midlineTo('x', 1.1).midlineTo('y', 11.5).color('red'), 'powerled');
+        } else {
+            group.add(this.Parts.BoardLed().snap(mb, 'z', 'outside-').translate([1, 43.5, 0]).color('lightgreen'), 'activityled');
+            group.add(this.Parts.BoardLed().snap(mb, 'z', 'outside-').translate([1, 46, 0]).color('red'), 'powerled');
+        }
+
+        group.add(Parts.Cube([15.2, 12, 1.5])
+            .snap(mb, 'z', 'outside+')
+            .midlineTo('y', 28)
+            .translate([-2.5, 0, 0])
+            .color('silver'), 'microsd');
+
+		if (v2) {
+			group.add(this.BMounting.holes(mb), 'holes', true, '')
+		}
+
+        // group.holes = this.BMounting.pads(mb).combine();
+
+        return group;
+    },
+
+    /**
      * Returns a complete RaspberryPi B Plus model.
      * ![bplus example](jsdoc2md/bplus.png)
      */
     BPlus: function (three) {
 
         var mb = this.Parts.BPlusMotherboard();
+		var mounting = this.BPlusMounting;
 
         var group = util.group('mb', mb);
         // Right side parts
@@ -261,15 +399,13 @@ RaspberryPi = {
 
         group.add(usb.clone().translate(
             usbt,
-            util.calcmidlineTo(usb.parts.body, 'y', 29)
-        ), 'usb1', false, 'usb1');
-
-        group.add(usb.clone().translate(
+            util.calcmidlineTo(usb.parts.body, 'y', 29) // should be 28.95??
+        ), 'usb1', false, 'usb1');group.add(usb.clone().translate(
             usbt,
-            util.calcmidlineTo(usb.parts.body, 'y', 47)
+            util.calcmidlineTo(usb.parts.body, 'y', 47) // 46.95 ??
         ), 'usb2', false, 'usb2');
 
-        group.add(this.Parts.MicroUsb().snap(mb, 'z', 'outside-').midlineTo('x', 10.6).translate([0, -1, 0]), 'microusb');
+        group.add(this.Parts.MicroUsb().snap(mb, 'z', 'outside-').midlineTo('x', 10.6).translate([0, -1, 0]), 'microusb'); // 6.8+7.5/2=10.55 ??
 
         group.add(this.Parts.Hdmi().snap(mb, 'z', 'outside-').midlineTo('x', 32).translate([0, -2, 0]), 'hdmi');
 
