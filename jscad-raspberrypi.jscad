@@ -139,21 +139,23 @@ RaspberryPi = {
             return Parts.Cube([15, 11.57, 7.4]).color('lightgray');
         },
 
-        RCAJack: function () { // TODO fix this, at the moment its just a copy of AvJack
-            var block = Parts.Cube([6.9, 12.47, 5.6]).color('lightgray');
-            var cyl = Parts.Cylinder(6, 2)
+        RCAJack: function () { // https://www.sparkfun.com/datasheets/Prototyping/Connectors/RCA-Jack.pdf
+            var block = Parts.Cube([9.8, 9.8, 13]).color('lightgray');
+            var cyl = Parts.Cylinder(8.3, 61.5-54+2.1)
                 .rotateX(90)
                 .align(block, 'xz')
+				.midlineTo('z',8.3/2-13/2+8)
                 .snap(block, 'y', 'outside+')
                 .color('black');
             return util.group('block,cylinder', [block, cyl]);
         },
 
-        AudioJack: function () { // TODO fix this, at the moment its just a copy of AvJack
-            var block = Parts.Cube([6.9, 12.47, 5.6]).color('lightgray');
-            var cyl = Parts.Cylinder(6, 2)
+        AudioJack: function () { // http://php2.twinner.com.tw/files/kunming-seo1/A-03509A-D.pdf
+            var block = Parts.Cube([12, 11.5, 10]).color('lightgray');
+            var cyl = Parts.Cylinder(7, 3.5)
                 .rotateX(90)
                 .align(block, 'xz')
+				.midlineTo('z',7/2-10/2+6.5)
                 .snap(block, 'y', 'outside+')
                 .color('black');
             return util.group('block,cylinder', [block, cyl]);
@@ -315,12 +317,15 @@ RaspberryPi = {
 
     /**
      * Returns a complete RaspberryPi B model.
-     * ![bplus example](jsdoc2md/bplus.png)
+	 * https://www.raspberrypi.org/app/uploads/2012/04/Raspberry-Pi-Schematics-R1.0.pdf
+	 * http://elinux.org/RPi_Partial_BOM_Rev2.0_ModelB
+	 * http://tronetix.com/tron/Raspberry_Pi-DXF.jpg
+	 * http://www.raspiworld.com/images/other/drawings/Raspberry-Pi-1-Model-B.pdf
+	 * 
      */
     B: function (v2) {
 
         var mb = this.Parts.BMotherboard();
-		var mounting = this.BMounting;
 
         var group = util.group('mb', mb);
         // Right side parts
@@ -337,23 +342,31 @@ RaspberryPi = {
             util.calcmidlineTo(usb.parts.body, 'y', 30.55)
         ), 'usb1', false, 'usb1');
 
-        group.add(this.Parts.MicroUsb().snap(mb, 'z', 'outside-').midlineTo('x', 10.6).translate([0, -1, 0]), 'microusb'); // TODO move to different side 
+        group.add(this.Parts.MicroUsb()
+			.rotateZ(90)
+			.snap(mb, 'z', 'outside-')
+			.snap(mb, 'x', 'inside-')
+			.midlineTo('y', 3.8+7.59/2)
+			.translate([0, 0, 0]), 'microusb');
 
         group.add(this.Parts.Hdmi().snap(mb, 'z', 'outside-').midlineTo('x', 44.3).translate([0, -2, 0]), 'hdmi');
 
         group.add(this.Parts.RCAJack() // fix real location
             .snap('block', mb, 'z', 'outside-')
-            .midlineTo('block', 'x', 53.5), 'rcajack', false, 'rcajack');
+            .midlineTo('block', 'x', 33+10/2)
+			.rotate(mb, "z", 180)
+			.translate([0, -2.1, 0]), 'rcajack', false, 'rcajack');
 
         group.add(this.Parts.AudioJack() // fix real location
             .snap('block', mb, 'z', 'outside-')
-            .midlineTo('block', 'x', 53.5), 'audiojack', false, 'audiojack');
+            .midlineTo('block', 'x', 14.6+12/2)
+			.rotate(mb, "z", 180), 'audiojack', false, 'audiojack');
 
         group.add(this.Parts.Ribbon().snap(mb, 'z', 'outside-').midlineTo('x', 45), 'camera');
 
         group.add(this.Parts.Ribbon().snap(mb, 'z', 'outside-').midlineTo('x', 3.5).midlineTo('y', 28), 'display');
 
-        group.add(this.Parts.Gpio().snap(mb, 'z', 'outside-').midlineTo('x', 32.5).midlineTo('y', 52.5), 'gpio');
+        group.add(this.Parts.Gpio26().snap(mb, 'z', 'outside-').midlineTo('x', 1+13*2.54/2).midlineTo('y', 54-1.04-2.54), 'gpio');
 
         if (1) {
             group.add(this.Parts.BoardLed().snap(mb, 'z', 'outside-').midlineTo('x', 1.1).midlineTo('y', 7.9).color('lightgreen'), 'activityled');
@@ -385,7 +398,6 @@ RaspberryPi = {
     BPlus: function (three) {
 
         var mb = this.Parts.BPlusMotherboard();
-		var mounting = this.BPlusMounting;
 
         var group = util.group('mb', mb);
         // Right side parts

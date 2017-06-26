@@ -31,7 +31,7 @@ function getParameterDefinitions() {
         name: 'type',
         type: 'choice',
         values: ['b_v1', 'b_v2', 'bplus', 'b3'],
-        captions: ['RaspberryPi B v1', 'RaspberryPi B v1', 'RaspberryPi B+/2', 'RaspberryPi 3'],
+        captions: ['RaspberryPi B v1', 'RaspberryPi B v2', 'RaspberryPi B+/2', 'RaspberryPi 3'],
         initial: 'b3',
         caption: 'Board Type:'
     }, {
@@ -83,44 +83,65 @@ function main(params) {
 
     var thickness = params.thickness;
     var BPlus;
+	var mounting;
+	var usb2 = false;
+	var usb2ports='';
+	var usb2clearance='';
+	var av_ports;
 	switch (params.type) {
 		case 'b_v1':
 			BPlus = RaspberryPi.B(false);
+			leftports='ethernet,usb1';
+			av_ports='audiojackcylinder,rcajackcylinder';
+			leftclearance='ethernetClearance,usb10Clearance,usb11Clearance';
 			break;
 			
 		case 'b_v2':
 			BPlus = RaspberryPi.B(true);
+			mounting = RaspberryPi.BMounting;
+			av_ports='audiojackcylinder,rcajackcylinder';
 			break;
 			
 		case 'blus':
 			BPlus = RaspberryPi.BPlus(false);
+			mounting = RaspberryPi.BPlusMounting;
+			usb2 = true;
+			av_ports='avjackcylinder';
 			break;
 			
 		case 'b3':
 			BPlus = RaspberryPi.BPlus(true);
+			mounting = RaspberryPi.BPlusMounting;
+			usb2 = true;
+			av_ports='avjackcylinder';
 			break;
 
 		default:
 	}
+	if (usb2) {
+		usb2ports = ',usb2';
+		usb2clearance=',usb20Clearance,usb21Clearance';
+	}
 
-    BPlus.add(RaspberryPi.Parts.UsbWifiAdapter(BPlus.parts.usb2, 0).enlarge([1, 1, 1]), 'usb20Clearance', true);
-    BPlus.add(RaspberryPi.Parts.UsbWifiAdapter(BPlus.parts.usb2, 1).enlarge([1, 1, 1]), 'usb21Clearance', true);
-    BPlus.add(RaspberryPi.Parts.UsbWifiAdapter(BPlus.parts.usb1, 0).enlarge([1, 1, 1]), 'usb10Clearance', true);
-    BPlus.add(RaspberryPi.Parts.UsbWifiAdapter(BPlus.parts.usb1, 1).enlarge([1, 1, 1]), 'usb11Clearance', true);
+	if (mounting == RaspberryPi.BPlusMounting) {
+		BPlus.add(RaspberryPi.Parts.UsbWifiAdapter(BPlus.parts.usb2, 0).enlarge([1, 1, 1]), 'usb20Clearance', true);
+		BPlus.add(RaspberryPi.Parts.UsbWifiAdapter(BPlus.parts.usb2, 1).enlarge([1, 1, 1]), 'usb21Clearance', true);
+	}
+	BPlus.add(RaspberryPi.Parts.UsbWifiAdapter(BPlus.parts.usb1, 0).enlarge([1, 1, 1]), 'usb10Clearance', true);
+	BPlus.add(RaspberryPi.Parts.UsbWifiAdapter(BPlus.parts.usb1, 1).enlarge([1, 1, 1]), 'usb11Clearance', true);
     BPlus.add(BPlus.parts.ethernet.color('blue').snap(BPlus.parts.ethernet, 'x', 'outside-'), 'ethernetClearance', true);
-
     var center = BPlus.parts.mb.calcCenter('xy');
     BPlus.map(function (part) {
         return part.translate(center);
     });
 
-    var topsupports = RaspberryPi.BPlusMounting.pads(BPlus.parts.mb, {
+    var topsupports = mounting.pads(BPlus.parts.mb, {
         height: 9
     }).map(function (part) {
         return part.fillet(-1, 'z+').color('blue');
     });
 
-    var bottomsupports = RaspberryPi.BPlusMounting.pads(BPlus.parts.mb, {
+    var bottomsupports = mounting.pads(BPlus.parts.mb, {
         height: 3,
         snap: 'outside+'
     }).map(function (part) {
@@ -153,13 +174,13 @@ function main(params) {
         removableBottom: false
     });
 
-    var leftcutouts = BPlus.combine('ethernet,usb1,usb2', {}, function (part) {
+    var leftcutouts = BPlus.combine('ethernet,usb1'+usb2ports, {}, function (part) {
         return part.enlarge([1, 1, 1]);
-    }).union(BPlus.combine('ethernetClearance,usb10Clearance,usb11Clearance,usb20Clearance,usb21Clearance'));
+    }).union(BPlus.combine('ethernetClearance,usb10Clearance,usb11Clearance'+usb2clearance));
 
 
 
-    var bottomcutouts = union(BPlus.combine('microusb,hdmi,avjackcylinder', {}, function (part) {
+    var bottomcutouts = union(BPlus.combine('microusb,hdmi,'+av_ports, {}, function (part) {
         return part.enlarge([1, thickness + 1, 1]).translate([0, -thickness, 0]);
     }));
 
