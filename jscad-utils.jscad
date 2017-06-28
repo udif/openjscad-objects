@@ -86,11 +86,11 @@ util = {
     },
 
     /**
-     * Convert metric `cm` to imperial `inch`.
+     * Convert metric `mm` to imperial `inch`.
      * @param  {Number} x Value in cm
      * @return {Number}   Result in inches
      */
-    cm: function cm(x) {
+    mm: function mm(x) {
         return x / 25.4;
     },
 
