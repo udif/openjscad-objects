@@ -102,7 +102,7 @@ function main(params) {
 			av_ports='audiojackcylinder,rcajack';
 			break;
 			
-		case 'blus':
+		case 'bplus':
 			BPlus = RaspberryPi.BPlus(false);
 			mounting = RaspberryPi.BPlusMounting;
 			usb2 = true;
