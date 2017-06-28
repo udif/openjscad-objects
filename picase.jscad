@@ -31,7 +31,7 @@ function getParameterDefinitions() {
         name: 'type',
         type: 'choice',
         values: ['b_v1', 'b_v2', 'bplus', 'b3'],
-        captions: ['RaspberryPi B v1', 'RaspberryPi B v2', 'RaspberryPi B+/2', 'RaspberryPi 3'],
+        captions: ['RaspberryPi B v1', 'RaspberryPi B v2', 'RaspberryPi 2', 'RaspberryPi 3'],
         initial: 'b3',
         caption: 'Board Type:'
     }, {
@@ -121,9 +121,6 @@ function main(params) {
 	if (usb2) {
 		usb2ports = ',usb2';
 		usb2clearance=',usb20Clearance,usb21Clearance';
-	}
-
-	if (mounting == RaspberryPi.BPlusMounting) {
 		BPlus.add(RaspberryPi.Parts.UsbWifiAdapter(BPlus.parts.usb2, 0).enlarge([1, 1, 1]), 'usb20Clearance', true);
 		BPlus.add(RaspberryPi.Parts.UsbWifiAdapter(BPlus.parts.usb2, 1).enlarge([1, 1, 1]), 'usb21Clearance', true);
 	}
