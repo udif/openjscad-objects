@@ -92,14 +92,14 @@ function main(params) {
 		case 'b_v1':
 			BPlus = RaspberryPi.B(false);
 			leftports='ethernet,usb1';
-			av_ports='audiojackcylinder,rcajackcylinder';
+			av_ports='audiojackcylinder,rcajack';
 			leftclearance='ethernetClearance,usb10Clearance,usb11Clearance';
 			break;
 			
 		case 'b_v2':
 			BPlus = RaspberryPi.B(true);
 			mounting = RaspberryPi.BMounting;
-			av_ports='audiojackcylinder,rcajackcylinder';
+			av_ports='audiojackcylinder,rcajack';
 			break;
 			
 		case 'blus':
@@ -171,7 +171,7 @@ function main(params) {
         removableBottom: false
     });
 
-    var leftcutouts = BPlus.combine('ethernet,usb1'+usb2ports, {}, function (part) {
+    var leftcutouts = BPlus.combine('ethernet,usb1,'+av_ports+usb2ports, {}, function (part) {
         return part.enlarge([1, 1, 1]);
     }).union(BPlus.combine('ethernetClearance,usb10Clearance,usb11Clearance'+usb2clearance));
 
