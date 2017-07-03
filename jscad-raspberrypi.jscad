@@ -384,9 +384,9 @@ RaspberryPi = {
 
 		if (v2) {
 			group.add(this.BMounting.holes(mb), 'holes', true, '')
+			group.holes = this.BMounting.holes(mb).combine();
 		}
 
-        group.holes = this.BMounting.holes(mb).combine();
 
         return group;
     },
