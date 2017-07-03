@@ -386,7 +386,7 @@ RaspberryPi = {
 			group.add(this.BMounting.holes(mb), 'holes', true, '')
 		}
 
-        // group.holes = this.BMounting.pads(mb).combine();
+        group.holes = this.BMounting.holes(mb).combine();
 
         return group;
     },
@@ -448,7 +448,7 @@ RaspberryPi = {
 
         group.add(this.BPlusMounting.holes(mb), 'holes', true, '')
 
-        // group.holes = this.BPlusMounting.pads(mb).combine();
+        group.holes = this.BPlusMounting.holes(mb).combine();
 
         return group;
     },
