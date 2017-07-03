@@ -379,11 +379,11 @@ RaspberryPi = {
 			group.add(this.Parts.BoardLed().snap(mb, 'z', 'outside-').midlineTo('x', 85.6-11.1).midlineTo('y', 53.98-7).color('green'), 'okled')			
 		}
 
-        group.add(Parts.Cube([15.2, 12, 1.5])
+        group.add(Parts.Cube([28.3, 17.7, 3.3])
             .snap(mb, 'z', 'outside+')
-            .midlineTo('y', 28)
+            .midlineTo('y', 11.5+28.3/2)
             .translate([-2.5, 0, 0])
-            .color('silver'), 'microsd');
+            .color('silver'), 'sdcard');
 
 		if (v2) {
 			group.add(this.BMounting.holes(mb), 'holes', true, '')

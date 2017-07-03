@@ -247,9 +247,10 @@ function main(params) {
                 }));
         },
         bottom: function () {
+			var card = BPlus.parts.microsd || BPlus.parts.sdcard;
             return box
                 .combine('bottom')
-                .subtract(union([bottomcutouts, leftcutouts, BPlus.parts.microsd.enlarge([1, 2, 1]).translate([-thickness, 0, 0])]))
+                .subtract(union([bottomcutouts, leftcutouts, card.enlarge([1, 2, 1]).translate([-thickness, 0, 0])]))
                 .union(bottomsupports.combine())
                 .subtract(RaspberryPi.Parts.MicroUsbPlug(BPlus.parts.microusb).combine('plug').enlarge([1, 0, 1]).translate([0, 1, 0]))
                 .color('red')
