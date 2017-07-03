@@ -85,11 +85,11 @@ RaspberryPi = {
 
     Parts: {
         BMotherboard: function () {
-            return Parts.Board(85.6, 53.98, 2, 1.32).color('green');
+            return Parts.Board(85.6, 53.98, 2, 1.32).color('darkgreen');
         },
 
         BPlusMotherboard: function () {
-            return Parts.Board(85, 56, 2, 1.32).color('green'); // corner radius 3 ??
+            return Parts.Board(85, 56, 2, 1.32).color('darkgreen'); // corner radius 3 ??
         },
 
         MountingHole: function (diameter, height) {
