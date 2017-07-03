@@ -175,10 +175,14 @@ function main(params) {
     }).union(BPlus.combine('ethernetClearance,usb10Clearance,usb11Clearance'+usb2clearance));
 
 
-
-    var bottomcutouts = union(BPlus.combine('microusb,hdmi,'+av_ports, {}, function (part) {
-        return part.enlarge([1, thickness + 1, 1]).translate([0, -thickness, 0]);
-    }));
+	var bottomcutouts = union(BPlus.combine('hdmi,'+av_ports, {}, function (part) {
+		return part.enlarge([1, thickness + 1, 1]).translate([0, -thickness, 0]);
+	}));
+	if (usb2) {
+		bottomcutouts = union(bottomcutouts, BPlus.combine('microusb').enlarge([1, thickness + 1, 1]).translate([0, -thickness, 0]));
+	} else {
+		bottomcutouts = union(bottomcutouts, BPlus.combine('microusb').enlarge([thickness + 1, 1, 1]).translate([-thickness, 0, 0]));
+	}
 
     var screw = Parts.Hardware.FlatHeadScrew(5.38, 1.7, 2.84, 12.7 - 1.7).combine('head,thread');
 
