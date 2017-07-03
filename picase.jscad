@@ -91,9 +91,8 @@ function main(params) {
 	switch (params.type) {
 		case 'b_v1':
 			BPlus = RaspberryPi.B(false);
-			leftports='ethernet,usb1';
+			mounting = RaspberryPi.BMounting;
 			av_ports='audiojackcylinder,rcajack';
-			leftclearance='ethernetClearance,usb10Clearance,usb11Clearance';
 			break;
 			
 		case 'b_v2':
