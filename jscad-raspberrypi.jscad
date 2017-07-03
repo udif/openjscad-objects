@@ -246,8 +246,8 @@ RaspberryPi = {
                 .align(mb, 'z');
 
             var holes = [
-                hole.midlineTo('x', 5).midlineTo('y', 12.5),
-                hole.midlineTo('x', 85.6-25.5).midlineTo('y', 54-18)
+                hole.midlineTo('x', 85.6-5).midlineTo('y', 54-12.5),
+                hole.midlineTo('x', 25.5).midlineTo('y', 18)
             ];
 
             return util.group('hole1,hole2', holes);
