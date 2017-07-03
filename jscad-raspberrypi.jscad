@@ -262,7 +262,7 @@ RaspberryPi = {
                 .snap(mb, 'xy', 'inside-');
 
             var pads = [
-                pad.midlineTo('x', 5).midlineTo('y', 12.5),
+                pad.midlineTo('x', 5).midlineTo('y', 12.5), // other sources says 4.9/12.6
                 pad.midlineTo('x', 85.6-25.5).midlineTo('y', 54-18)
             ];
 
