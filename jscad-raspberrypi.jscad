@@ -368,13 +368,16 @@ RaspberryPi = {
 
         group.add(this.Parts.Gpio26().snap(mb, 'z', 'outside-').midlineTo('x', 1+13*2.54/2).midlineTo('y', 54-1.04-2.54), 'gpio');
 
-        if (1) {
-            group.add(this.Parts.BoardLed().snap(mb, 'z', 'outside-').midlineTo('x', 1.1).midlineTo('y', 7.9).color('lightgreen'), 'activityled');
-            group.add(this.Parts.BoardLed().snap(mb, 'z', 'outside-').midlineTo('x', 1.1).midlineTo('y', 11.5).color('red'), 'powerled');
-        } else {
-            group.add(this.Parts.BoardLed().snap(mb, 'z', 'outside-').translate([1, 43.5, 0]).color('lightgreen'), 'activityled');
-            group.add(this.Parts.BoardLed().snap(mb, 'z', 'outside-').translate([1, 46, 0]).color('red'), 'powerled');
-        }
+		group.add(this.Parts.BoardLed().snap(mb, 'z', 'outside-').midlineTo('x', 85.6-4.1).midlineTo('y', 53.98-7).color('green'), 'lnkled');
+		group.add(this.Parts.BoardLed().snap(mb, 'z', 'outside-').midlineTo('x', 85.6-6.1).midlineTo('y', 53.98-7).color('green'), 'fdxled');
+		group.add(this.Parts.BoardLed().snap(mb, 'z', 'outside-').midlineTo('x', 85.6-9.1).midlineTo('y', 53.98-7).color('red'), 'pwrled');
+		if (v2) {
+			group.add(this.Parts.BoardLed().snap(mb, 'z', 'outside-').midlineTo('x', 85.6-2.1).midlineTo('y', 53.98-7).color('yellow'), '100led');
+			group.add(this.Parts.BoardLed().snap(mb, 'z', 'outside-').midlineTo('x', 85.6-11.1).midlineTo('y', 53.98-7).color('green'), 'actled');
+		} else {
+			group.add(this.Parts.BoardLed().snap(mb, 'z', 'outside-').midlineTo('x', 85.6-2.1).midlineTo('y', 53.98-7).color('yellow'), '10mled');
+			group.add(this.Parts.BoardLed().snap(mb, 'z', 'outside-').midlineTo('x', 85.6-11.1).midlineTo('y', 53.98-7).color('green'), 'okled')			
+		}
 
         group.add(Parts.Cube([15.2, 12, 1.5])
             .snap(mb, 'z', 'outside+')
