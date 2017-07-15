@@ -23,8 +23,8 @@ function getParameterDefinitions() {
     }, {
         name: 'part',
         type: 'choice',
-        values: ['top', 'bottom', 'assembled', 'board', 'cutouts'],
-        captions: ['top', 'bottom', 'assembled', 'board-only', 'cutouts'],
+        values: ['top', 'bottom', 'assembled', 'board', 'cutouts', 'board_cutouts'],
+        captions: ['top', 'bottom', 'assembled', 'board-only', 'cutouts', 'board and cutouts'],
         initial: 'assembled',
         caption: 'Part:'
     }, {
@@ -278,6 +278,9 @@ function main(params) {
         },
         cutouts: function () {
             return cutouts;
+        },
+        board_cutouts: function () {
+            return union(BPlus.combine(),cutouts);
         }
     };
 
