@@ -117,7 +117,6 @@ function main(params) {
 
 		default:
 	}
-	var mb = BPlus.parts.mb;
 	if (usb2) {
 		usb2ports = ',usb2';
 		usb2clearance=',usb20Clearance,usb21Clearance';
@@ -131,21 +130,22 @@ function main(params) {
     BPlus.map(function (part) {
         return part.translate(center);
     });
+	var mb = BPlus.parts.mb;
 
-    var topsupports = mounting.pads(BPlus.parts.mb, {
+    var topsupports = mounting.pads(mb, {
         height: 9
     }).map(function (part) {
         return part.fillet(-1, 'z+').color('blue');
     });
 
-    var bottomsupports = mounting.pads(BPlus.parts.mb, {
+    var bottomsupports = mounting.pads(mb, {
         height: 3,
         snap: 'outside+'
     }).map(function (part) {
         return part.fillet(-1, 'z-').color('red');
     });
 
-    var spacer = Parts.Cube([2, 2, 2]).snap(BPlus.parts.mb, 'x', 'outside-');
+    var spacer = Parts.Cube([2, 2, 2]).snap(mb, 'x', 'outside-');
     var interior = union([
         topsupports.combine(),
         bottomsupports.combine(),
@@ -255,7 +255,8 @@ function main(params) {
                 .union(topsupports.combine().snap(box.parts.top, 'z', 'outside+'))
                 .subtract(cutouts)
                 .unionIf(connectors, uselabel)
-                .color('blue').subtract(screws.combine(undefined, {}, function (screw) {
+                .color('blue')
+				.subtract(screws.combine(undefined, {}, function (screw) {
                     return screw.enlarge([-0.6, -0.6, 4]);
                 }));
         },
