@@ -117,6 +117,7 @@ function main(params) {
 
 		default:
 	}
+	var mb = BPlus.parts.mb;
 	if (usb2) {
 		usb2ports = ',usb2';
 		usb2clearance=',usb20Clearance,usb21Clearance';
@@ -171,11 +172,12 @@ function main(params) {
         return screw.align(part, 'xy').snap(box, 'z', 'inside-');
     });
 
+	var label;
     if (params.text.length > 0) {
         var uselabel = true;
         var labelarea = topsupports.combine().enlarge([-15, -5, 0]);
         var labelsize = labelarea.size();
-        var label = util.label(params.text, 0, 0, 3, thickness + 1)
+        label = util.label(params.text, 0, 0, 3, thickness + 1)
             .snap(box, 'z', 'inside+')
             .align(labelarea, 'xy')
             .fit([labelsize.x, labelsize.y, 0], true)
@@ -208,17 +210,38 @@ function main(params) {
 
     var ribbonhole = Parts.Board(2, 17, 1, thickness * 2);
 
-    var cutouts = union(
-		BPlus.combine('ethernet,usb1,'+av_ports+usb2ports, {}, function (part) {
-			return part.enlarge([1, 1, 1]);}),
-		BPlus.combine('ethernetClearance,usb10Clearance,usb11Clearance'+usb2clearance),
-		BPlus.combine('hdmi,'+av_ports, {}, function (part) {
-			return part.enlarge([1, thickness + 1, 1]).translate([0, -thickness, 0]);}),
-		BPlus.combine('microusb').enlarge(usb2 ? [1, thickness + 1, 1] : [thickness + 1, 1, 1]).
-			translate( usb2 ? [0, -thickness, 0] : [-thickness, 0, 0])
-	)
+	var card = BPlus.parts.microsd || BPlus.parts.sdcard;
+	var microusbplug = RaspberryPi.Parts.MicroUsbPlug(BPlus.parts.microusb).combine('plug').enlarge([1, 0, 1]).translate([0, 1, 0]);
+	if (!usb2) {
+		microusbplug = microusbplug
+			//.rotateZ(90)
+			//.snap(mb, 'z', 'outside-')
+			//.snap(mb, 'x', 'inside-')
+			//.midlineTo('y', 3.8+7.59/2)
+			.translate([0, 0, 0]);
+	}
+
+    var cutouts =
+		union(
+			BPlus.combine('ethernet,usb1,'+av_ports+usb2ports, {}, function (part) {
+				return part.enlarge([1, 1, 1]);}),
+			BPlus.combine('ethernetClearance,usb10Clearance,usb11Clearance'+usb2clearance),
+			BPlus.combine('hdmi,'+av_ports, {}, function (part) {
+				return part.enlarge([1, thickness + 1, 1]).translate([0, -thickness, 0]);}),
+			BPlus.combine('microusb').enlarge(usb2 ? [1, thickness + 1, 1] : [thickness + 1, 1, 1]).
+				translate( usb2 ? [0, -thickness, 0] : [-thickness, 0, 0]),
+			microusbplug,
+			card.enlarge([1, 2, 1]).translate([-thickness, 0, 0])
+		)
 		.unionIf(label, uselabel)
-		.unionIf(logo_3d, uselogo);
+		.unionIf(logo_3d, uselogo)
+		.unionIf(function () {
+			return BPlus.parts.gpio.snap(box, 'z', 'inside+').enlarge([2, 1, thickness * 3]);
+		}, params.gpio)
+		.unionIf(ribbonhole.snap(box, 'z', 'inside+').align(BPlus.parts.camera, 'xy'), params.camera)
+		.unionIf(function () {
+			return ribbonhole.snap(box, 'z', 'inside+').align(BPlus.parts.display, 'xy');
+		}, params.display);
 	
     box = Boxes.RabettTopBottom(box, thickness, 0.3, {
         removableTop: true,
@@ -231,25 +254,16 @@ function main(params) {
                 .combine('top')
                 .union(topsupports.combine().snap(box.parts.top, 'z', 'outside+'))
                 .subtract(cutouts)
-                .subtractIf(function () {
-                    return BPlus.parts.gpio.snap(box.parts.top, 'z', 'inside+').enlarge([2, 1, thickness * 3]);
-                }, params.gpio)
-                .subtractIf(ribbonhole.snap(box.parts.top, 'z', 'inside+').align(BPlus.parts.camera, 'xy'), params.camera)
-                .subtractIf(function () {
-                    return ribbonhole.snap(box.parts.top, 'z', 'inside+').align(BPlus.parts.display, 'xy');
-                }, params.display)
                 .unionIf(connectors, uselabel)
                 .color('blue').subtract(screws.combine(undefined, {}, function (screw) {
                     return screw.enlarge([-0.6, -0.6, 4]);
                 }));
         },
         bottom: function () {
-			var card = BPlus.parts.microsd || BPlus.parts.sdcard;
             return box
                 .combine('bottom')
-                .subtract(union([cutouts, card.enlarge([1, 2, 1]).translate([-thickness, 0, 0])]))
+                .subtract(cutouts)
                 .union(bottomsupports.combine())
-                .subtract(RaspberryPi.Parts.MicroUsbPlug(BPlus.parts.microusb).combine('plug').enlarge([1, 0, 1]).translate([0, 1, 0]))
                 .color('red')
                 .subtract(screws.combine(undefined, {}, function (screw) {
                     return screw.enlarge([0.42, 0.42, 0]);
