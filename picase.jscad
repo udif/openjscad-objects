@@ -165,22 +165,6 @@ function main(params) {
             .align(interior, 'xyz');
     });
 
-    var cutouts = union(
-		BPlus.combine('ethernet,usb1,'+av_ports+usb2ports, {}, function (part) {
-			return part.enlarge([1, 1, 1]);}),
-		BPlus.combine('ethernetClearance,usb10Clearance,usb11Clearance'+usb2clearance),
-		BPlus.combine('hdmi,'+av_ports, {}, function (part) {
-			return part.enlarge([1, thickness + 1, 1]).translate([0, -thickness, 0]);}),
-		BPlus.combine('microusb').enlarge(usb2 ? [1, thickness + 1, 1] : [thickness + 1, 1, 1]).
-			translate( usb2 ? [0, -thickness, 0] : [-thickness, 0, 0])
-	);
-	
-	//if (usb2) {
-	//	cutouts = union(cutouts, BPlus.combine('microusb').enlarge([1, thickness + 1, 1]).translate([0, -thickness, 0]));
-	//} else {
-	//	cutouts = union(cutouts, BPlus.combine('microusb').enlarge([thickness + 1, 1, 1]).translate([-thickness, 0, 0]));
-	//}
-
     var screw = Parts.Hardware.FlatHeadScrew(5.38, 1.7, 2.84, 12.7 - 1.7).combine('head,thread');
 
     var screws = bottomsupports.clone(function (part) {
@@ -224,8 +208,16 @@ function main(params) {
 
     var ribbonhole = Parts.Board(2, 17, 1, thickness * 2);
 
-	cutouts = 
-		cutouts.unionIf(label, uselabel)
+    var cutouts = union(
+		BPlus.combine('ethernet,usb1,'+av_ports+usb2ports, {}, function (part) {
+			return part.enlarge([1, 1, 1]);}),
+		BPlus.combine('ethernetClearance,usb10Clearance,usb11Clearance'+usb2clearance),
+		BPlus.combine('hdmi,'+av_ports, {}, function (part) {
+			return part.enlarge([1, thickness + 1, 1]).translate([0, -thickness, 0]);}),
+		BPlus.combine('microusb').enlarge(usb2 ? [1, thickness + 1, 1] : [thickness + 1, 1, 1]).
+			translate( usb2 ? [0, -thickness, 0] : [-thickness, 0, 0])
+	)
+		.unionIf(label, uselabel)
 		.unionIf(logo_3d, uselogo);
 	
     box = Boxes.RabettTopBottom(box, thickness, 0.3, {
