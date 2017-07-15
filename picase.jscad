@@ -23,8 +23,8 @@ function getParameterDefinitions() {
     }, {
         name: 'part',
         type: 'choice',
-        values: ['top', 'bottom', 'assembled', 'board'],
-        captions: ['top', 'bottom', 'assembled', 'board-only'],
+        values: ['top', 'bottom', 'assembled', 'board', 'cutouts'],
+        captions: ['top', 'bottom', 'assembled', 'board-only', 'cutouts'],
         initial: 'assembled',
         caption: 'Part:'
     }, {
@@ -165,29 +165,26 @@ function main(params) {
             .align(interior, 'xyz');
     });
 
-    box = Boxes.RabettTopBottom(box, thickness, 0.3, {
-        removableTop: true,
-        removableBottom: false
-    });
-
-    var leftcutouts = BPlus.combine('ethernet,usb1,'+av_ports+usb2ports, {}, function (part) {
-        return part.enlarge([1, 1, 1]);
-    }).union(BPlus.combine('ethernetClearance,usb10Clearance,usb11Clearance'+usb2clearance));
-
-
-	var bottomcutouts = union(BPlus.combine('hdmi,'+av_ports, {}, function (part) {
-		return part.enlarge([1, thickness + 1, 1]).translate([0, -thickness, 0]);
-	}));
-	if (usb2) {
-		bottomcutouts = union(bottomcutouts, BPlus.combine('microusb').enlarge([1, thickness + 1, 1]).translate([0, -thickness, 0]));
-	} else {
-		bottomcutouts = union(bottomcutouts, BPlus.combine('microusb').enlarge([thickness + 1, 1, 1]).translate([-thickness, 0, 0]));
-	}
+    var cutouts = union(
+		BPlus.combine('ethernet,usb1,'+av_ports+usb2ports, {}, function (part) {
+			return part.enlarge([1, 1, 1]);}),
+		BPlus.combine('ethernetClearance,usb10Clearance,usb11Clearance'+usb2clearance),
+		BPlus.combine('hdmi,'+av_ports, {}, function (part) {
+			return part.enlarge([1, thickness + 1, 1]).translate([0, -thickness, 0]);}),
+		BPlus.combine('microusb').enlarge(usb2 ? [1, thickness + 1, 1] : [thickness + 1, 1, 1]).
+			translate( usb2 ? [0, -thickness, 0] : [-thickness, 0, 0])
+	);
+	
+	//if (usb2) {
+	//	cutouts = union(cutouts, BPlus.combine('microusb').enlarge([1, thickness + 1, 1]).translate([0, -thickness, 0]));
+	//} else {
+	//	cutouts = union(cutouts, BPlus.combine('microusb').enlarge([thickness + 1, 1, 1]).translate([-thickness, 0, 0]));
+	//}
 
     var screw = Parts.Hardware.FlatHeadScrew(5.38, 1.7, 2.84, 12.7 - 1.7).combine('head,thread');
 
     var screws = bottomsupports.clone(function (part) {
-        return screw.align(part, 'xy').snap(box.parts.bottom, 'z', 'inside-');
+        return screw.align(part, 'xy').snap(box, 'z', 'inside-');
     });
 
     if (params.text.length > 0) {
@@ -195,7 +192,7 @@ function main(params) {
         var labelarea = topsupports.combine().enlarge([-15, -5, 0]);
         var labelsize = labelarea.size();
         var label = util.label(params.text, 0, 0, 3, thickness + 1)
-            .snap(box.parts.top, 'z', 'inside+')
+            .snap(box, 'z', 'inside+')
             .align(labelarea, 'xy')
             .fit([labelsize.x, labelsize.y, 0], true)
             .translate([0, 0, 0.5]);
@@ -205,7 +202,7 @@ function main(params) {
         var connector = Parts.Cube([connectorarea.x, 1, 1])
             .align(label, 'x')
             .snap(label, 'y', 'outside+')
-            .snap(box.parts.top, 'z', 'inside+')
+            .snap(box, 'z', 'inside+')
             .translate([0, 0, -thickness / 2]);
 
         var connectors = union([0.2, 0.4, 0.6, 0.8].map(function (position) {
@@ -218,7 +215,7 @@ function main(params) {
         var logoarea = topsupports.combine().enlarge([-15, -5, 0]);
         var logosize = logoarea.size();
         var logo_3d = logo().extrude({offset:[0,0,params.thickness+1]})
-            .snap(box.parts.top, 'z', 'inside+')
+            .snap(box, 'z', 'inside+')
             .align(logoarea, 'xy')
             .fit([logosize.x * 0.75, logosize.y * 0.75, 0], true)
             .translate([-6, -2, 0.05]);
@@ -227,13 +224,21 @@ function main(params) {
 
     var ribbonhole = Parts.Board(2, 17, 1, thickness * 2);
 
+	cutouts = 
+		cutouts.unionIf(label, uselabel)
+		.unionIf(logo_3d, uselogo);
+	
+    box = Boxes.RabettTopBottom(box, thickness, 0.3, {
+        removableTop: true,
+        removableBottom: false
+    });
+
     var parts = {
         top: function () {
             return box
                 .combine('top')
                 .union(topsupports.combine().snap(box.parts.top, 'z', 'outside+'))
-                .subtract(leftcutouts.unionIf(label, uselabel))
-                .subtract(leftcutouts.unionIf(logo_3d, uselogo))
+                .subtract(cutouts)
                 .subtractIf(function () {
                     return BPlus.parts.gpio.snap(box.parts.top, 'z', 'inside+').enlarge([2, 1, thickness * 3]);
                 }, params.gpio)
@@ -250,7 +255,7 @@ function main(params) {
 			var card = BPlus.parts.microsd || BPlus.parts.sdcard;
             return box
                 .combine('bottom')
-                .subtract(union([bottomcutouts, leftcutouts, card.enlarge([1, 2, 1]).translate([-thickness, 0, 0])]))
+                .subtract(union([cutouts, card.enlarge([1, 2, 1]).translate([-thickness, 0, 0])]))
                 .union(bottomsupports.combine())
                 .subtract(RaspberryPi.Parts.MicroUsbPlug(BPlus.parts.microusb).combine('plug').enlarge([1, 0, 1]).translate([0, 1, 0]))
                 .color('red')
@@ -263,6 +268,9 @@ function main(params) {
         },
         board: function () {
             return BPlus.combine();
+        },
+        cutouts: function () {
+            return cutouts;
         }
     };
 
