@@ -211,14 +211,17 @@ function main(params) {
     var ribbonhole = Parts.Board(2, 17, 1, thickness * 2);
 
 	var card = BPlus.parts.microsd || BPlus.parts.sdcard;
-	var microusbplug = RaspberryPi.Parts.MicroUsbPlug(BPlus.parts.microusb).combine('plug').enlarge([1, 0, 1]).translate([0, 1, 0]);
-	if (!usb2) {
+	var microusbplug = RaspberryPi.Parts.MicroUsbPlug(BPlus.parts.microusb).combine().enlarge([1, 0, 1]);
+	if (usb2) {
+		microusbplug = microusbplug.translate([0, 1, 0]);
+	} else {
 		microusbplug = microusbplug
-			//.rotateZ(90)
-			//.snap(mb, 'z', 'outside-')
-			//.snap(mb, 'x', 'inside-')
-			//.midlineTo('y', 3.8+7.59/2)
-			.translate([0, 0, 0]);
+			//.translate(microusbplug.calcCenter('xy'))
+			.rotateZ(-90)
+			.snap(mb, 'y', 'inside-')
+			.snap(mb, 'x', 'outside+')
+			.midlineTo('y', 3.8+7.59/2)
+			.translate([4, 0, 0]);
 	}
 
     var cutouts =
