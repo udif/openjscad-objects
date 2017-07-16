@@ -362,9 +362,9 @@ RaspberryPi = {
             .midlineTo('block', 'x', 14.6+12/2)
 			.rotate(mb, "z", 180), 'audiojack', false, 'audiojack');
 
-        group.add(this.Parts.Ribbon().snap(mb, 'z', 'outside-').midlineTo('x', 45), 'camera');
+        group.add(this.Parts.Ribbon().snap(mb, 'z', 'outside-').midlineTo('x', 60-2.5/2), 'camera');
 
-        group.add(this.Parts.Ribbon().snap(mb, 'z', 'outside-').midlineTo('x', 3.5).midlineTo('y', 28), 'display');
+        group.add(this.Parts.Ribbon().snap(mb, 'z', 'outside-').midlineTo('x', 13.5-2.5/2).midlineTo('y', 39-22/2), 'display');
 
         group.add(this.Parts.Gpio26().snap(mb, 'z', 'outside-').midlineTo('x', 1+13*2.54/2).midlineTo('y', 54-1.04-2.54), 'gpio');
 
