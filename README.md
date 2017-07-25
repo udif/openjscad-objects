@@ -12,7 +12,7 @@ The file picase.jscad is forked from https://github.com/johnwebbcole/picase
 
 Raspberry Pi case
 -----------------
-Please drag jscad-boxes.jscad, jscad-utils-color.jscad, jscad-utils-parts.jscad, jscad-utils.jscad, jscad-raspberrypi.jscad, picase.jscad and drop them on openjscad.org
+Please drag jscad-boxes.jscad, jscad-utils-color.jscad, jscad-utils-parts.jscad, jscad-utils.jscad, jscad-raspberrypi.jscad, picase.jscad and drop them on https://openjscad.org/
 You can then change various parameters and render which part you want.
 
 Other parts:
