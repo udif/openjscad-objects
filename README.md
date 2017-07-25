@@ -8,12 +8,25 @@ The files jscad-boxes.jscad, jscad-utils-color.jscad, jscad-utils-parts.jscad, j
 
 The file jscad-raspberrypi.jscad is forked from https://github.com/johnwebbcole/jscad-raspberrypi
 
+The file kodi_logo.jscad was created fresh by taking http://labs.koenklaren.nl/kodi-logo/kodi-logo.svg and importing it into OpenJSCAD.org
+
 The file picase.jscad is forked from https://github.com/johnwebbcole/picase
 
 Raspberry Pi case
 -----------------
 Please drag jscad-boxes.jscad, jscad-utils-color.jscad, jscad-utils-parts.jscad, jscad-utils.jscad, jscad-raspberrypi.jscad, picase.jscad and drop them on https://openjscad.org/
 You can then change various parameters and render which part you want.
+
+### List of improvements over original picase:
+1. It is possible to add an SVG Logo on the box top cover
+2. It is possible to control the Box height
+3. Added support for Older Raspberry Pi B
+4. Added additional views (board-only, board with plugs, etc.)
+5. Simplified logic, for example: list of cutouts is prepared once, then subtracted from box, and only then the box is split into top & button. This saves us from separating the cutouts into top & bottom
+
+### TODO
+Convert the specialized board layout into a JSON file for each new board, with each board built from a standard PCB plus standard components (USB, ethernet, hdmi, etc), all described by a JSON file.
+This should allow printing boxes for new board in 15 minutes.
 
 Other parts:
 ------------
