@@ -40,6 +40,11 @@ function getParameterDefinitions() {
         initial: 2.0,
         caption: 'Thickness:'
     }, {
+        name: 'height',
+        type: 'float',
+        initial: 17.32, // thickness*2+3+1.32+9
+        caption: 'Height:'
+    }, {
         name: 'gpio',
         type: 'checkbox',
         checked: true,
@@ -133,7 +138,7 @@ function main(params) {
 	var mb = BPlus.parts.mb;
 
     var topsupports = mounting.pads(mb, {
-        height: 9
+        height: params.height - 2*thickness - 1.32 - 3
     }).map(function (part) {
         return part.fillet(-1, 'z+').color('blue');
     });
