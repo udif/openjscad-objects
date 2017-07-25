@@ -25,8 +25,9 @@ You can then change various parameters and render which part you want.
 5. Simplified logic, for example: list of cutouts is prepared once, then subtracted from box, and only then the box is split into top & button. This saves us from separating the cutouts into top & bottom
 
 ### TODO
-Convert the specialized board layout into a JSON file for each new board, with each board built from a standard PCB plus standard components (USB, ethernet, hdmi, etc), all described by a JSON file.
+1. Convert the specialized board layout into a JSON file for each new board, with each board built from a standard PCB plus standard components (USB, ethernet, hdmi, etc), all described by a JSON file.
 This should allow printing boxes for new board in 15 minutes.
+2. Add a generic mechanism for adding box mounts (for example VESA mounts) to a box without being explicit to a specific box model.
 
 Other parts:
 ------------
