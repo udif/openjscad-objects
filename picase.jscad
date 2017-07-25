@@ -92,27 +92,27 @@ function main(params) {
 		case 'b_v1':
 			BPlus = RaspberryPi.B(false);
 			mounting = RaspberryPi.BMounting;
-			av_ports='audiojackcylinder,rcajack';
+			av_ports=',audiojackcylinder,rcajack';
 			break;
 			
 		case 'b_v2':
 			BPlus = RaspberryPi.B(true);
 			mounting = RaspberryPi.BMounting;
-			av_ports='audiojackcylinder,rcajack';
+			av_ports=',audiojackcylinder,rcajack';
 			break;
 			
 		case 'bplus':
 			BPlus = RaspberryPi.BPlus(false);
 			mounting = RaspberryPi.BPlusMounting;
 			usb2 = true;
-			av_ports='avjackcylinder';
+			av_ports=',avjackcylinder';
 			break;
 			
 		case 'b3':
 			BPlus = RaspberryPi.BPlus(true);
 			mounting = RaspberryPi.BPlusMounting;
 			usb2 = true;
-			av_ports='avjackcylinder';
+			av_ports=',avjackcylinder';
 			break;
 
 		default:
@@ -226,15 +226,15 @@ function main(params) {
 
     var cutouts =
 		union(
-			BPlus.combine('ethernet,usb1,'+av_ports+usb2ports, {}, function (part) {
-				return part.enlarge([1, 1, 1]);}),
+			BPlus.combine('ethernet,usb1'+usb2ports, {}, function (part) {
+				return part.enlarge([thickness, 1, 1]);}),
 			BPlus.combine('ethernetClearance,usb10Clearance,usb11Clearance'+usb2clearance),
-			BPlus.combine('hdmi,'+av_ports, {}, function (part) {
-				return part.enlarge([1, thickness + 1, 1]).translate([0, -thickness, 0]);}),
+			BPlus.combine('hdmi'+av_ports, {}, function (part) {
+				return part.enlarge([1, 1 + thickness, 1]).translate([0, 0, 0]);}),
 			BPlus.combine('microusb').enlarge(usb2 ? [1, thickness + 1, 1] : [thickness + 1, 1, 1]).
 				translate( usb2 ? [0, -thickness, 0] : [-thickness, 0, 0]),
 			microusbplug,
-			card.enlarge([1, 2, 1]).translate([-thickness, 0, 0])
+			card.enlarge([thickness + 1, 1, 1]).translate([-thickness, 0, 0])
 		)
 		.unionIf(label, uselabel)
 		.unionIf(logo_3d, uselogo)
