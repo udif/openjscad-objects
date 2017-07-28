@@ -15,8 +15,8 @@ function getParameterDefinitions() {
     }, {
         name: 'part',
         type: 'choice',
-        values: ['piece', 'ring', 'flat_piece'],
-        captions: ['piece (with connecting ring groove)', ' connecting ring', 'flat piece (no ring groove)'],
+        values: ['piece', 'ring', 'screw', 'flat_piece'],
+        captions: ['piece (with connecting ring groove)', ' connecting ring', 'screw', 'flat piece (no ring groove)'],
         initial: 'piece_flat',
         caption: 'Part:'
     }];
@@ -49,6 +49,9 @@ function main(params) {
 	var conn_h = 1;
 	// extra width for tolerance
 	var conn_tol = 0.15;
+	// How many teeths
+	var num_teeths = 6;
+	var teeth_angle = 45;
 	
 	if (params.part == 'ring') {
 		conn_h = (0.75 * conn_h) * 2; // when constructing ring needs to be twice as high to cover both parts
@@ -80,12 +83,26 @@ function main(params) {
 	var ring = ring_outer.subtract(ring_inner);
 	var flat_piece = base.subtract(sphere_cut);
 	var piece_ring = flat_piece.subtract(ring);
+	var teeth = ring.intersect(ring.subtract(CSG.cube ({
+		radius: [base_r, base_r, base_r]
+	}).translate([base_r,0,0])).rotateX(teeth_angle));
+	
+	var teeths = teeth;
+	var i;
+	for (i = 1; i < num_teeths; i++) {
+		teeths = teeths.union(teeth.rotateZ(i*360/num_teeths));
+	}
+	var piece_teeth = flat_piece.union(teeths.translate([0, 0, -conn_h]));
+	var piece_minus_teeth = flat_piece.subtract(teeths.translate([0, 0, -conn_h]).rotateX(180));
 	switch (params.part) {
 		case 'flat_piece':
 			return flat_piece;
 			
 		case 'piece':
 			return piece_ring;
+			
+		case 'screw':
+			return union(piece_teeth, piece_minus_teeth.translate([0, 0, 10]));
 			
 		case 'ring':
 			var cutout = CSG.cube ({
