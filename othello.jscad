@@ -45,6 +45,8 @@ function main(params) {
 	var curve_depth=1.8;
 	// Width of connecting ring
 	var conn_w = 2 ; // ring_width/3;
+	// Width of connecting teeth
+	var teeth_w = 1 ; 
 	// Height of connecting ring
 	var conn_h = 1;
 	// extra width for tolerance
@@ -52,7 +54,9 @@ function main(params) {
 	// How many teeths
 	var num_teeths = 6;
 	var teeth_angle = 45;
-	
+	// compensation for plastic warping which we sand later
+	var height_extra = 0.3;
+	base_height += height_extra;
 	if (params.part == 'ring') {
 		conn_h = (0.75 * conn_h) * 2; // when constructing ring needs to be twice as high to cover both parts
 	} else {
@@ -83,10 +87,16 @@ function main(params) {
 	var ring = ring_outer.subtract(ring_inner);
 	var flat_piece = base.subtract(sphere_cut);
 	var piece_ring = flat_piece.subtract(ring);
+	//
+	// Screw
+	//
+	
+	// cut ring into half-circle and rotate slightly to create screw part,
+	// then intersect with original ring
 	var teeth = ring.intersect(ring.subtract(CSG.cube ({
 		radius: [base_r, base_r, base_r]
 	}).translate([base_r,0,0])).rotateX(teeth_angle));
-	
+	// Create "num_teeths" evenly around a circle
 	var teeths = teeth;
 	var i;
 	for (i = 1; i < num_teeths; i++) {
@@ -94,14 +104,52 @@ function main(params) {
 	}
 	var piece_teeth = flat_piece.union(teeths.translate([0, 0, -conn_h]));
 	var piece_minus_teeth = flat_piece.subtract(teeths.translate([0, 0, -conn_h]).rotateX(180));
+	//
+	// Screw ring
+	//
+	var ring_teeth_large = CSG.cylinder({
+		start: [0,0,-conn_h],
+		end: [0, 0, conn_h],
+		radius: (base_r-conn_w+conn_tol/2)
+	});
+	var ring_teeth_middle = CSG.cylinder({
+		start: [0,0,-conn_h],
+		end: [0, 0, conn_h],
+		radius: (base_r-2*conn_w+teeth_w+conn_tol/2)
+	});
+	var ring_teeth_small = CSG.cylinder({
+		start: [0,0,-conn_h],
+		end: [0, 0, conn_h],
+		radius: (base_r-2*conn_w+conn_tol/2)
+	});
+	var ring_for_screw = ring_teeth_large.subtract(ring_teeth_middle);
+	var ring_for_teeth = ring_teeth_middle.subtract(ring_teeth_small);
+	var small_teeth =
+		ring_teeth_middle
+		.subtract(ring_teeth_small)
+		.intersect(ring.subtract(CSG.cube ({
+		radius: [base_r, base_r, base_r]
+	}).translate([base_r,0,0])).rotateX(teeth_angle));
+	// Create "num_teeths" evenly around a circle
+	var small_teeths = ring_for_screw;
+	var i;
+	for (i = 0; i < num_teeths; i++) {
+		small_teeths = small_teeths.union(small_teeth.rotateZ(i*360/num_teeths));
+	}
+	var piece_minus_small_teeths = flat_piece.subtract(small_teeths);
+
+	//
+	// Render
+	//
 	switch (params.part) {
 		case 'flat_piece':
 			return flat_piece;
 			
 		case 'piece':
-			return piece_ring;
+			return piece_minus_small_teeths;
 			
 		case 'screw':
+			return small_teeths;
 			return union(piece_teeth, piece_minus_teeth.translate([0, 0, 10]));
 			
 		case 'ring':
