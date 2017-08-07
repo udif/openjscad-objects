@@ -173,11 +173,11 @@ function grid(params) {
 	if ((xm > 1) && (ym > 1)) {
 		var cubey = snake_cube((s+2*e), t).translate([0.5*gw, 0.5*gw, 0]);
 		for (y = 2; y < ym; y++) {
-			cubey = cubey.union(snake_cube((s+2*e), t).translate([(x-0.5)*gw, (y-0.5)*gw, 0]));
+			cubey = cubey.union(snake_cube((s+2*e), t).translate([0, (y-1)*gw, 0]));
 		}
 		var cubex = cubey;
 		for (x = 2; x < xm; x++) {
-			cubex = cubex.union(cubey.translate([(x-0.5)*gw, 0, 0]));
+			cubex = cubex.union(cubey.translate([(x-1)*gw, 0, 0]));
 		}
 		gobjx = gobjx.union(cubex);
 	}
