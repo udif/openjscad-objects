@@ -165,13 +165,21 @@ function grid(params) {
 	var gobjy = spiral4(params);
 	for (var y = 1; y < ym; y++) {
 		gobjy = gobjy.union(spiral4(params).translate([0, y*gw, 0]));
-		if (xm > 1) {
-			gobjy = gobjy.union(snake_cube((s+2*e), t).translate([-0.5*gw, (y-0.5)*gw, 0]));
-		}
 	}
 	var gobjx = gobjy;
 	for (var x = 1; x < xm; x++) {
 		gobjx = gobjx.union(gobjy.translate([x*gw, 0, 0]));
+	}
+	if ((xm > 1) && (ym > 1)) {
+		var cubey = snake_cube((s+2*e), t).translate([0.5*gw, 0.5*gw, 0]);
+		for (y = 2; y < ym; y++) {
+			cubey = cubey.union(snake_cube((s+2*e), t).translate([(x-0.5)*gw, (y-0.5)*gw, 0]));
+		}
+		var cubex = cubey;
+		for (x = 2; x < xm; x++) {
+			cubex = cubex.union(cubey.translate([(x-0.5)*gw, 0, 0]));
+		}
+		gobjx = gobjx.union(cubex);
 	}
 	return gobjx;
 }
