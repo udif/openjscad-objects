@@ -33,7 +33,7 @@ Flex grid
 ---------
 A parametrized pattern to create flexible surfaces even when 3D printing using rigid materials.
 Based on:
-http://lab.kofaktor.hr/en/portfolio/super-flexible-laser-cut-plywood/
+http://lab.kofaktor.hr/en/portfolio/super-flexible-laser-cut-plywood/  
 http://www.instructables.com/id/Flexible-3D-Printing/
 
 Other parts:
