@@ -34,6 +34,11 @@ function getParameterDefinitions() {
         initial: 2,
         caption: 'Y multiplier:'
     }, {
+        name: 'complexity',
+        type: 'float',
+        initial: 5,
+        caption: 'Complexity:'
+    }, {
         name: 'space',
         type: 'float',
         initial: 1,
@@ -106,21 +111,18 @@ function spiral(params) {
 	var w = params.width;
 	var t = params.thickness;
 	var s = params.space;
-	//var c = 5; // complexity
+	var c = params.complexity; // complexity
 	
 	//return snake_cube(w, t);
-	return snake (params, [
+	var half_snake = snake (params, [
 		[-(e+s/2), 0],
 		[4, 0],
 		[4, 3],
 		[1, 3],
 		[1, 2],
-		[3, 2],
-		[3, 1],
-		[0, 1],
-		[0, 4],
-		[4+s/2+e, 4]
-	]).translate([(w+s)/2, (w+s)/2, 0]);
+		[2, 2]
+	]).translate([-(w+s)*2, -(w+s)*2, 0]);
+	return half_snake.union(half_snake.rotateZ(180)).translate([(w+s)*c/2, (w+s)*c/2, 0]);
 	
 }
 
