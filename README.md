@@ -33,7 +33,7 @@ Flex grid
 ---------
 A parametrized pattern to create flexible surfaces even when 3D printing using rigid materials.
 Direct link:  
-https://udif.github.io/openjscad.github.io/#https://raw.githubusercontent.com/udif/openjscad-objects/master/flexgrid.jscad  
+https://www.openjscad.org/#https://raw.githubusercontent.com/udif/openjscad-objects/master/flexgrid.jscad  
 
 Based on:
 http://lab.kofaktor.hr/en/portfolio/super-flexible-laser-cut-plywood/  

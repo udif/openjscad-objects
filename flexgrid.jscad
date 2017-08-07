@@ -41,7 +41,7 @@ function getParameterDefinitions() {
     }, {
         name: 'space',
         type: 'float',
-        initial: 1,
+        initial: 0.5,
         caption: 'Element spacing:'
     }, {
         name: 'gpio',
@@ -115,7 +115,7 @@ function spiral(params) {
 	
 	var sign = ((c % 4) == 1) ? 1 : -1;
 	
-	var dx = -(e+s/2)*sign;
+	var dx = -e*sign;
 	var dy = 0;
 	var snake_arr = [ [dx, dy] ];
 	dx = sign *(c-1);
