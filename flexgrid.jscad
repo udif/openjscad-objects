@@ -36,7 +36,7 @@ function getParameterDefinitions() {
     }, {
         name: 'complexity',
         type: 'float',
-        initial: 5,
+        initial: 2,
         caption: 'Complexity:'
     }, {
         name: 'space',
@@ -63,7 +63,7 @@ function snake(params, elems) {
 	var s = params.space;
 	var t = params.thickness;
 	
-	var obj = snake_cube(w, t).translate([x*(w+s), y*(w+s), 0])
+	var obj = snake_cube(w, t).translate([x*(w+s), y*(w+s), 0]);
 	for (var i = 1; i < elems.length; i++) {
 		if (elems[i][0] == x) {
 			// Move on Y axis
@@ -111,18 +111,31 @@ function spiral(params) {
 	var w = params.width;
 	var t = params.thickness;
 	var s = params.space;
-	var c = params.complexity; // complexity
+	var c = params.complexity*2+1; // complexity
 	
-	//return snake_cube(w, t);
-	var half_snake = snake (params, [
-		[-(e+s/2), 0],
-		[4, 0],
-		[4, 3],
-		[1, 3],
-		[1, 2],
-		[2, 2]
-	]).translate([-(w+s)*2, -(w+s)*2, 0]);
-	return half_snake.union(half_snake.rotateZ(180)).translate([(w+s)*c/2, (w+s)*c/2, 0]);
+	var sign = ((c % 4) == 1) ? 1 : -1;
+	
+	var dx = -(e+s/2)*sign;
+	var dy = 0;
+	var snake_arr = [ [dx, dy] ];
+	dx = sign *(c-1);
+	snake_arr.push([dx, dy]);
+	for (var dc = c - 2; dc >= 1; dc -= 2) {
+		if (dc % 4 == 3) {
+			dy += dc;
+			snake_arr.push([dx, dy]);
+			dx -= dc;
+			snake_arr.push([dx, dy]);
+		} else { // dc%4==1
+			dy -= dc;
+			snake_arr.push([dx, dy]);
+			dx += dc;
+			snake_arr.push([dx, dy]);
+		}
+	}
+	var half_snake = snake(params, snake_arr)
+	.translate([-(w+s)*sign*(c-1)/2, -(w+s)*sign*(c-1)/2, 0]);
+	return half_snake.union(half_snake.rotateZ(180)).translate([(w+s)*sign*c/2, (w+s)*sign*c/2, 0]);
 	
 }
 
@@ -147,16 +160,14 @@ function grid(params) {
 	var t = params.thickness;
 	var xm = params.xmult;
 	var ym = params.ymult;
-	var gw = 10*(w+s);
+	var gw = (params.complexity*2+1)*2*(w+s);
 	var gobj = spiral4(params);
-	
-	console.log(gw);
 	
 	for (var x = 0; x < xm; x++) {
 		for (var y = 0; y < ym; y++) {
 			gobj = gobj.union(spiral4(params).translate([x*gw, y*gw, 0]));
 			if ((x*y) > 0) {
-				gobj = gobj.union(snake_cube((s+2*e), t).translate([(x-0.5)*gw, (y-0.5)*gw, 0]))
+				gobj = gobj.union(snake_cube((s+2*e), t).translate([(x-0.5)*gw, (y-0.5)*gw, 0]));
 			}
 		}
 	}
