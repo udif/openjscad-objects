@@ -29,7 +29,14 @@ You can then change various parameters and render which part you want.
 This should allow printing boxes for new board in 15 minutes.
 2. Add a generic mechanism for adding box mounts (for example VESA mounts) to a box without being explicit to a specific box model.
 
+Flex grid
+---------
+A parametrized pattern to create flexible surfaces even when 3D printing using rigid materials.
+Based on:
+http://lab.kofaktor.hr/en/portfolio/super-flexible-laser-cut-plywood/
+http://www.instructables.com/id/Flexible-3D-Printing/
+
 Other parts:
 ------------
-othello.jscad - A small piece for playing Reverse/Othello. Print two of these, one in black and one in white, and glue back to back. 
+othello.jscad - A small piece for playing Reverse/Othello. Print two of these, one in black and one in white, and glue back to back. `
 yi-mount.jscad - An adapter from the Yi dash camera to a an arm with a Vaccum  attachment.
