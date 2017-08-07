@@ -161,17 +161,19 @@ function grid(params) {
 	var xm = params.xmult;
 	var ym = params.ymult;
 	var gw = (params.complexity*2+1)*2*(w+s);
-	var gobj = spiral4(params);
 	
-	for (var x = 0; x < xm; x++) {
-		for (var y = 0; y < ym; y++) {
-			gobj = gobj.union(spiral4(params).translate([x*gw, y*gw, 0]));
-			if ((x*y) > 0) {
-				gobj = gobj.union(snake_cube((s+2*e), t).translate([(x-0.5)*gw, (y-0.5)*gw, 0]));
-			}
+	var gobjy = spiral4(params);
+	for (var y = 1; y < ym; y++) {
+		gobjy = gobjy.union(spiral4(params).translate([0, y*gw, 0]));
+		if (xm > 1) {
+			gobjy = gobjy.union(snake_cube((s+2*e), t).translate([-0.5*gw, (y-0.5)*gw, 0]));
 		}
 	}
-	return gobj;
+	var gobjx = gobjy;
+	for (var x = 1; x < xm; x++) {
+		gobjx = gobjx.union(gobjy.translate([x*gw, 0, 0]));
+	}
+	return gobjx;
 }
 function main(params) {
     // echo('params', JSON.stringify(params));
