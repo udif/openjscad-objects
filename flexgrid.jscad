@@ -1,12 +1,7 @@
 // title      : Flex Grid
-// author     : Udi Finkelstein
+// author     : Udi Finkelstein <github@udifink.com>
 // license    : 
 // Based on   : http://www.instructables.com/id/Flexible-3D-Printing/
-
-//include ('jscad-utils.jscad')
-//include ('jscad-utils-color.jscad')
-//include ('jscad-utils-parts.jscad')
-//include ('jscad-boxes.jscad')
 
 /* exported main, getParameterDefinitions */
 function getParameterDefinitions() {
