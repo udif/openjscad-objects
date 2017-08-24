@@ -55,7 +55,7 @@ function main(params) {
 	var num_teeths = 6;
 	var teeth_angle = 45;
 	// compensation for plastic warping which we sand later
-	var height_extra = 0.3;
+	var height_extra = 0.0;
 	base_height += height_extra;
 	if (params.part == 'ring') {
 		conn_h = (0.75 * conn_h) * 2; // when constructing ring needs to be twice as high to cover both parts
