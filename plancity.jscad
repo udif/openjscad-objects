@@ -36,13 +36,13 @@ function main(params) {
     //util.init(CSG);
 
     // Radius of part
-	var small_r = 12.5/2;
+	var small_r = 13/2;
     // Radius of part
 	var large_r = 13.5/2;
 	// Height of part
 	var height = 9.8;
 	// Height of connecting neck
-	var width = 6;
+	var width = 6.5;
 	// width of slot
 	var slot_width=1;
 	// Max Depth of curve in the middle
