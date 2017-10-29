@@ -18,8 +18,8 @@ function getParameterDefinitions() {
     }, {
         name: 'part',
         type: 'choice',
-        values: ['piece', 'flat_piece'],
-        captions: ['piece',  'piece with larger hold'],
+        values: ['piece', 'half_piece', 'holes_only'],
+        captions: ['piece',  'piece to be used', 'holes only'],
         initial: 'flat_piece',
         caption: 'Part:'
     }];
@@ -40,15 +40,17 @@ function main(params) {
 
     // Radius of small pin
 	var fillet_r = 1;
-	var width = 23;
+	var width = 22.5;
 	var length1 = 34;
 	var length2 = 34 - 7.5;
 	var length3 = 20;
+	var slot_loc = 6.5;
+	var slot_w = 1.5;
 	var thick1 = 6;
 	var thick2 = 8.5;
 	var thick3 = 12;
 	var pin_r = 3/2;
-	var pin_spacing = 7;
+	var pin_spacing = 8;
 	var pin_length = 20;
 
 	var bounding1 = CSG.cube({
@@ -59,6 +61,11 @@ function main(params) {
 			center: [0,length1/2,0],
 			radius: [width/2,length1/2,thick2/2]
 		});
+	var slot = CSG.cube({
+			center: [(slot_w-slot_loc)/2,length1/2-(length2-length3),(thick2+thick1)/4],
+			radius: [slot_w/2,(length2-length3)/2,(thick2-thick1)/4]
+		});
+
 	var bounding3 = CSG.cube({
 			center: [0,length1/2,0],
 			radius: [width/2,length1/2,thick3/2]
@@ -70,11 +77,19 @@ function main(params) {
 	var plug2 = CSG.cube({
 			center: [0,(2*length1-length2)/2,0],
 			radius: [width/2,length2/2+fillet_r,thick2/2]
-		}).rotateY(90).fillet(fillet_r, 'z+').rotateY(180).fillet(fillet_r, 'z+').rotateY(90);
+		}).rotateY(90).fillet(fillet_r, 'z+').rotateY(180).fillet(fillet_r, 'z+').rotateY(90)
+		.intersect(CSG.cube({
+			center: [0,(2*length1-length2)/2,0],
+			radius: [width/2,length2/2,thick2/2]
+		}));
 	var plug3 = CSG.cube({
 			center: [0,(2*length1-length3)/2,0],
 			radius: [width/2,length3/2+fillet_r,thick3/2]
-		}).rotateY(90).fillet(fillet_r, 'z+').rotateY(180).fillet(fillet_r, 'z+').rotateY(90);
+		}).rotateY(90).fillet(fillet_r, 'z+').rotateY(180).fillet(fillet_r, 'z+').rotateY(90)
+		.intersect(CSG.cube({
+			center: [0,(2*length1-length3)/2,0],
+			radius: [width/2,length3/2,thick3/2]
+		}));
 
 	var pin = CSG.cylinder({
 			start: [0,0,0],
@@ -100,12 +115,16 @@ function main(params) {
 	//
 	// Render
 	//
+	var shape = union(plug1, plug2, plug3).subtract(union(pins, slot));
 	switch (params.part) {
 		case 'piece':
-			return union(plug1, plug2, plug3).subtract(pins).intersect(bounding1);
+			return shape.intersect(bounding1);
 
-		case 'flat_piece':
-			return union(plug1, plug2, plug3).subtract(pins).intersect(bounding2);
+		case 'half_piece':
+			return shape.intersect(bounding2);
+
+		case 'holes_only':
+			return union(pins, slot);
 	}
 
 }	
