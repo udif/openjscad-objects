@@ -15,9 +15,9 @@ function getParameterDefinitions() {
     }, {
         name: 'part',
         type: 'choice',
-        values: ['piece'],
-        captions: ['piece'],
-        initial: 'piece',
+        values: ['piece', 'flat_piece'],
+        captions: ['piece',  'piece with larger hold'],
+        initial: 'flat_piece',
         caption: 'Part:'
     }];
 }
@@ -43,12 +43,10 @@ function main(params) {
 	var large_r = 7.92/2;
 	// Length of outside part
 	var total_height = 15.92;
-	// Height of connecting neck
-	var width = 6.5;
-	// width of slot
-	var slot_width=1;
-	// Max Depth of curve in the middle
-	var length=36;
+	// dimensions of tooth holding the shelve
+	tooth_x = small_r*2;
+	tooth_y = 10;
+	tooth_z = 15;
 
 	var small_cyl = CSG.cylinder({
 			start: [0,0,0],
@@ -64,7 +62,10 @@ function main(params) {
 		center: [0, 0, total_height-large_r],
 		radius: large_r
 	});
-
+	var tooth = CSG.cube({
+			center: [0,0,small_height+tooth_z/2],
+			radius: [tooth_x/2,tooth_y/2,tooth_z/2]
+		});
 
 	//
 	// Render
@@ -72,6 +73,9 @@ function main(params) {
 	switch (params.part) {
 		case 'piece':
 			return union(large_cyl, small_cyl, half_dome);
+
+		case 'flat_piece':
+			return union(small_cyl, tooth).rotateY(90);
 	}
 
 }	
