@@ -18,8 +18,8 @@ function getParameterDefinitions() {
     }, {
         name: 'part',
         type: 'choice',
-        values: ['piece', 'half_piece', 'holes_only'],
-        captions: ['piece',  'piece to be used', 'holes only'],
+        values: ['piece', 'half_piece_u', 'half_piece_d', 'holes_only'],
+        captions: ['piece',  'upper piece to be used', 'lower piece to be used', 'holes only'],
         initial: 'flat_piece',
         caption: 'Part:'
     }];
@@ -40,29 +40,31 @@ function main(params) {
 
     // Radius of small pin
 	var fillet_r = 1;
-	var width = 22.5;
+	var width = 23;
 	var length1 = 34;
 	var length2 = 34 - 7.5;
 	var length3 = 20;
-	var slot_loc = 6.5;
-	var slot_w = 1.5;
 	var thick1 = 6;
 	var thick2 = 8.5;
 	var thick3 = 12;
 	var pin_r = 3/2;
 	var pin_spacing = 8;
 	var pin_length = 20;
+	var slot_loc = pin_spacing/2;
+	var slot_w = 1.5;
+	var cable_r = 3;
+	var cable_length = 10;
 
-	var bounding1 = CSG.cube({
+	var bounding_u = CSG.cube({
 			center: [0,length1/2,thick2/2],
 			radius: [width/2,length1/2,thick2/2]
 		});
-	var bounding2 = CSG.cube({
-			center: [0,length1/2,0],
+	var bounding_d = CSG.cube({
+			center: [0,length1/2,-thick2/2],
 			radius: [width/2,length1/2,thick2/2]
 		});
 	var slot = CSG.cube({
-			center: [(slot_w-slot_loc)/2,length1/2-(length2-length3),(thick2+thick1)/4],
+			center: [-slot_loc,length1/2-(length2-length3),(thick2+thick1)/4],
 			radius: [slot_w/2,(length2-length3)/2,(thick2-thick1)/4]
 		});
 
@@ -73,7 +75,11 @@ function main(params) {
 	var plug1 = CSG.cube({
 			center: [0,length1/2,0],
 			radius: [width/2,length1/2+fillet_r,thick1/2]
-		}).rotateY(90).fillet(fillet_r, 'z+').rotateY(180).fillet(fillet_r, 'z+').rotateY(90);
+		}).rotateY(90).fillet(fillet_r, 'z+').rotateY(180).fillet(fillet_r, 'z+').rotateY(90)
+		.intersect(CSG.cube({
+			center: [0,length1/2,0],
+			radius: [width/2,length1/2,thick2/2]
+		}));
 	var plug2 = CSG.cube({
 			center: [0,(2*length1-length2)/2,0],
 			radius: [width/2,length2/2+fillet_r,thick2/2]
@@ -96,35 +102,29 @@ function main(params) {
 			end: [0, 0, pin_length],
 			radius: pin_r
 		}).rotateX(90).translate([0, length1/2, 0]);
+	var cable = CSG.cylinder({
+			start: [0,0,0],
+			end: [0, 0, cable_length],
+			radius: cable_r
+		}).rotateX(90).translate([0, length1, 0]);
 	var pins = union(pin, pin.translate([pin_spacing, 0, 0]), pin.translate([-pin_spacing, 0, 0]));
-	/*
-	var large_cyl = CSG.cylinder({
-			start: [0,0,small_height],
-			end: [0, 0, total_height-large_r],
-			radius: large_r
-		});
-	var half_dome = CSG.sphere({
-		center: [0, 0, total_height-large_r],
-		radius: large_r
-	});
-	var tooth = CSG.cube({
-			center: [0,0,small_height+tooth_z/2],
-			radius: [tooth_x/2,tooth_y/2,tooth_z/2]
-		});
-	*/
 	//
 	// Render
 	//
-	var shape = union(plug1, plug2, plug3).subtract(union(pins, slot));
+	var cutout = union(pins, slot, cable);
+	var shape = union(plug1, plug2, plug3).subtract(cutout);
 	switch (params.part) {
 		case 'piece':
-			return shape.intersect(bounding1);
+			return shape;
 
-		case 'half_piece':
-			return shape.intersect(bounding2);
+		case 'half_piece_u':
+			return shape.intersect(bounding_u);
+
+		case 'half_piece_d':
+			return shape.intersect(bounding_d);
 
 		case 'holes_only':
-			return union(pins, slot);
+			return cutout;
 	}
 
 }	
