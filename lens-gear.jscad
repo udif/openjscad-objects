@@ -10,7 +10,7 @@ function getParameterDefinitions() {
         type: 'choice',
         values: [0, 1, 2, 3, 4, 5],
         captions: ['very low (6,16)', 'low (8,24)', 'normal (12,32)', 'high (24,64)', 'very high (48,128)', 'ultra high (96,256)'],
-        initial: 2,
+        initial: 3,
         caption: 'Resolution:'
     }, {
         name: 'length',
