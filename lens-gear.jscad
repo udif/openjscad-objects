@@ -58,6 +58,11 @@ function getParameterDefinitions() {
         initial: 7.8,
         caption: 'length of section with inner wide radius'
     }, {
+        name: 'inner_cone_slope',
+        type: 'float',
+        initial: 1,
+        caption: 'slope of inner cone from inner wide radius to inner narrow radius'
+    }, {
         name: 'inner_n_r',
         type: 'float',
         initial: 72/2,
@@ -149,6 +154,8 @@ function main(params) {
 	var length = params.length;
 	// Length of the inner space for buttons
 	var inner_length = params.inner_length;
+	// Length of the inner cone where we change from inner wide to inner narrow width
+	var inner_cone_slope = params.inner_cone_slope;
 	// Length of the gear surrounding the adapter
 	var gear_length = params.gear_length;
 	// number of teeth
@@ -220,7 +227,12 @@ function main(params) {
 			start: [0,0,0],
 			end: [0, 0, inner_length],
 			radius: inner_w_r/slot_factor
-		});
+		}).union(CSG.cylinder({
+			start: [0, 0, inner_length],
+			end:   [0, 0, inner_length+inner_cone_slope*(inner_w_r-inner_n_r)/slot_factor],
+			radiusStart: inner_w_r/slot_factor,
+			radiusEnd: inner_n_r/slot_factor
+		}));
 
 	var base = union(ext_cyl, gear_cyl).subtract(union(in1_cyl, in2_cyl));
 	// Create a single gear teeth
