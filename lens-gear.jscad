@@ -111,7 +111,7 @@ function getParameterDefinitions() {
         name: 'handle_width_factor',
         type: 'float',
         initial: 1.5,
-        caption: 'Width of opening in the ring'
+        caption: 'Handle width factor relative to slot width'
     }, {
         name: 'part',
         type: 'choice',
