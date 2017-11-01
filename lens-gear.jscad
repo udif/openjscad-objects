@@ -58,7 +58,7 @@ function getParameterDefinitions() {
         initial: 7.8,
         caption: 'length of section with inner wide radius'
     }, {
-        name: 'inner_cone_slope',
+        name: 'cone_slope',
         type: 'float',
         initial: 1,
         caption: 'slope of inner cone from inner wide radius to inner narrow radius'
@@ -118,6 +118,21 @@ function getParameterDefinitions() {
         initial: 1.5,
         caption: 'Handle width factor relative to slot width'
     }, {
+        name: 'invert',
+        type: 'checkbox',
+        checked: false,
+        caption: 'draw part upside-down (for STL import)'
+    }, {
+        name: 'base',
+        type: 'checkbox',
+        checked: false,
+        caption: 'draw flat base'
+    }, {
+        name: 'base_thickness',
+        type: 'float',
+        initial: 0.2,
+        caption: 'Thickness of base (if enabled)'
+    }, {
         name: 'part',
         type: 'choice',
         values: ['piece', 'piece_with_slot'],
@@ -155,7 +170,7 @@ function main(params) {
 	// Length of the inner space for buttons
 	var inner_length = params.inner_length;
 	// Length of the inner cone where we change from inner wide to inner narrow width
-	var inner_cone_slope = params.inner_cone_slope;
+	var cone_slope = params.cone_slope;
 	// Length of the gear surrounding the adapter
 	var gear_length = params.gear_length;
 	// number of teeth
@@ -206,17 +221,23 @@ function main(params) {
 			radius: outer_r/slot_factor
 		});
 	// the small cylinder on which we put the teeth
+	var gear_cone_length = gear_length+cone_slope*(gear_bounding_r-outer_r)/slot_factor;
 	var gear_cyl = CSG.cylinder({
 			start: [0,0,0],
-			end: [0, 0, gear_length],
+			end: [0, 0, gear_cone_length],
 			radius: gear_r/slot_factor
 		});
-	// This cylinder clips the gear teeths 
+	// This cylinder+cone clips the gear teeths 
 	var gear_bounding_cyl = CSG.cylinder({
 			start: [0,0,0],
 			end: [0, 0, gear_length],
 			radius: gear_bounding_r/slot_factor
-		});
+		}).union(CSG.cylinder({
+			start: [0, 0, gear_length],
+			end:   [0, 0, gear_cone_length],
+			radiusStart: gear_bounding_r/slot_factor,
+			radiusEnd: outer_r/slot_factor
+		}));
 	// 
 	var in1_cyl = CSG.cylinder({
 			start: [0,0,0],
@@ -229,17 +250,16 @@ function main(params) {
 			radius: inner_w_r/slot_factor
 		}).union(CSG.cylinder({
 			start: [0, 0, inner_length],
-			end:   [0, 0, inner_length+inner_cone_slope*(inner_w_r-inner_n_r)/slot_factor],
+			end:   [0, 0, inner_length+cone_slope*(inner_w_r-inner_n_r)/slot_factor],
 			radiusStart: inner_w_r/slot_factor,
 			radiusEnd: inner_n_r/slot_factor
 		}));
 
-	var base = union(ext_cyl, gear_cyl).subtract(union(in1_cyl, in2_cyl));
 	// Create a single gear teeth
 	var points = [new CSG.Vector2D.fromAngle(teeth_angle/2).times(gear_r/slot_factor)];
 	points.push(new CSG.Vector2D.fromAngle(-teeth_angle/2).times(gear_r/slot_factor));
 	points.push(new CSG.Vector2D((gear_r+teeth_triangle_height)/slot_factor, 0));
-	var tooth3d = new CSG.Polygon2D(points).extrude({offset: [0, 0, gear_length]});
+	var tooth3d = new CSG.Polygon2D(points).extrude({offset: [0, 0, gear_cone_length]});
 	var teeth3d;
 	// Now clone it around the adapter
 	for (i = 0; i < teeth; i++) {
@@ -248,6 +268,7 @@ function main(params) {
 	}
 	// Clip it by the bounding cylinder
 	teeth3d = teeth3d.intersect(gear_bounding_cyl);
+	var base = ext_cyl.union(gear_bounding_cyl.intersect(union(gear_cyl, teeth3d))).subtract(union(in1_cyl, in2_cyl)).union(teeth3d);
 
 	// Create a slot
 	if (slot_width > 0) {
@@ -260,9 +281,8 @@ function main(params) {
 			corner1: [-slot_radius, 0           , 0],
 			corner2: [ slot_radius, -slot_radius, length]
 		}));
-		var scale_factor1 = (slot_radius+handle_radius)/slot_radius;
-		var outer_r_adj = outer_r/slot_factor;
-		var scale_factor2 = (outer_r_adj+handle_distance)/slot_radius;
+		var scale_factor1 = (outer_r+handle_radius)/gear_bounding_r;
+		var scale_factor2 = (outer_r+handle_distance)/gear_bounding_r;
 		var slot_angular_width = 360*slot_width/(2*pi*slot_radius);
 		var slot3d = cyl1.intersect(cyl1.rotateZ(180-slot_angular_width));
 		base = base.subtract(slot3d);
@@ -282,8 +302,50 @@ function main(params) {
 			    handle3 = handle3.translate([0, 0, handle2_start]).intersect(handle3.translate([0, 0, handle2_end-length]));
 			var handle4 = handle1.translate([0, 0, handle1_start]).intersect(handle1.translate([0, 0, handle1_end-length]));
 			var handle5 = handle1.translate([0, 0, handle2_start]).intersect(handle1.translate([0, 0, handle2_end-length]));
-			base = base.union(handle2).union(handle3).union(handle4).union(handle5);
+			// This cylinder+cone clips the handles
+			var handle24_bounding_cyl = CSG.cylinder({
+					start: [0,0,0],
+					end: [0, 0, handle1_end-cone_slope*handle_radius],
+					radius: (outer_r+handle_radius)/slot_factor
+				}).union(CSG.cylinder({
+					start: [0, 0, handle1_end-cone_slope*handle_radius ],
+					end:   [0, 0, handle1_end],
+					radiusStart: (outer_r+handle_radius)/slot_factor,
+					radiusEnd: outer_r/slot_factor
+				}));
+			var handle35_bounding_cyl = CSG.cylinder({
+					start: [0,0,0],
+					end: [0, 0, handle2_end-cone_slope*handle_radius],
+					radius: (outer_r+handle_radius)/slot_factor
+				}).union(CSG.cylinder({
+					start: [0, 0, handle2_end-cone_slope*handle_radius ],
+					end:   [0, 0, handle2_end],
+					radiusStart: (outer_r+handle_radius)/slot_factor,
+					radiusEnd: outer_r/slot_factor
+				}));
+			if (!params.invert){
+				handle24_bounding_cyl = handle24_bounding_cyl
+					.translate([0, 0, -(handle1_start+handle1_end)/2])
+					.rotateX(180)
+					.translate([0, 0, (handle1_start+handle1_end)/2]);
+				handle35_bounding_cyl = handle35_bounding_cyl
+					.translate([0, 0, -(handle2_start+handle2_end)/2])
+					.rotateX(180)
+					.translate([0, 0, (handle2_start+handle2_end)/2]);
+			}
+			base = base.union(union(handle2, handle4).intersect(handle24_bounding_cyl))
+			           .union(union(handle3, handle5).intersect(handle35_bounding_cyl));
 		}
+	}
+	if (params.invert) {
+		base = base.rotateX(180).translate([0, 0, length]);
+	}
+	if (params.base) {
+		base = base.union(CSG.cylinder({
+			start: [0,0,0],
+			end: [0, 0, params.base_thickness],
+			radius: outer_r/slot_factor
+		}).subtract(slot3d));
 	}
 
 /*	
@@ -298,7 +360,7 @@ function main(params) {
 	//
 	switch (params.part) {
 		case 'piece':
-			return base.union(teeth3d);
+			return base;
 			
 		case 'piece_with_slot':
 			return handle1;
