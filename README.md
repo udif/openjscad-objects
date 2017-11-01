@@ -39,6 +39,21 @@ Based on:
 http://lab.kofaktor.hr/en/portfolio/super-flexible-laser-cut-plywood/  
 http://www.instructables.com/id/Flexible-3D-Printing/
 
+DSLR Lens Focus/Zoom Gear
+-------------------------
+A fully parametrized Focus/Zoom gear for DSLR lens.
+
+https://www.openjscad.org/?uri=https://raw.githubusercontent.com/udif/openjscad-objects/master/plancity.jscad
+
+PlanCity plastic connector
+--------------------------
+https://www.google.co.il/search?q=plancity+road&tbm=isch
+PlanCity wooden parts have a plastic connector that tends to break after several years.
+Here is a replacement part.
+This should also fit Brio rails.
+https://www.openjscad.org/#https://raw.githubusercontent.com/udif/openjscad-objects/master/flexgrid.jscad  
+
+
 Other parts:
 ------------
 othello.jscad - A small piece for playing Reverse/Othello. Print two of these, one in black and one in white, and glue back to back. `
