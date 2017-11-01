@@ -43,7 +43,7 @@ DSLR Lens Focus/Zoom Gear
 -------------------------
 A fully parametrized Focus/Zoom gear for DSLR lens.
 
-https://www.openjscad.org/?uri=https://raw.githubusercontent.com/udif/openjscad-objects/master/plancity.jscad
+https://www.openjscad.org/?uri=https://raw.githubusercontent.com/udif/openjscad-objects/master/lens-gear.jscad
 
 PlanCity plastic connector
 --------------------------
@@ -51,7 +51,7 @@ https://www.google.co.il/search?q=plancity+road&tbm=isch
 PlanCity wooden parts have a plastic connector that tends to break after several years.
 Here is a replacement part.
 This should also fit Brio rails.
-https://www.openjscad.org/#https://raw.githubusercontent.com/udif/openjscad-objects/master/flexgrid.jscad  
+https://www.openjscad.org/#https://raw.githubusercontent.com/udif/openjscad-objects/master/plancity.jscad  
 
 
 Other parts:
