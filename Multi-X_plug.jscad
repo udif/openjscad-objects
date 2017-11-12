@@ -136,13 +136,19 @@ function main(params) {
 			radius: [(width-walls_x)/2, (length3-walls_y1-walls_y2)/2, (thick3-walls_z)/2],
 			roundradius: fillet_r,
 			resolution : CSG.defaultResolution3D
-		})
-		//.rotateY(90).fillet(fillet_r, 'z+').rotateY(180).fillet(fillet_r, 'z+').rotateY(90)
-		//.intersect(CSG.cube({
-		//	center: [0, length1-length3/2-(walls_y1-walls_y2)/2,0],
-		//	radius: [(width-walls_x)/2, (length3-walls_y1-walls_y2)/2, (thick3-walls_z)/2]
-		//}))
-		;
+		});
+	var support = null;
+	for (var i = 0; i < (length3-walls_y1-walls_y2); i += 2) {
+		var s = CSG.cube({
+			center: [0, length1-length3/2-i, 0],
+			radius: [(width-walls_x-fillet_r)/2, 0.2, (thick3-walls_z)/2]
+		});
+		if (support === null) {
+			support = s;
+		} else {
+			support = support.union(s);
+		}
+	}
 	//var plug3h = plug3.scale([util.scale(width, -walls_x), util.scale(length3, -walls_y), util.scale(thick3, -walls_z)]);
 	var hole1 = screws().translate([ (width/2+cable_r)/2, length1-walls_y1/2, 0]);
 	var hole2 = screws().translate([-(width/2+cable_r)/2, length1-walls_y1/2, 0]);
@@ -161,7 +167,7 @@ function main(params) {
 	// Render
 	//
 	var cutout = union(pins, slot, cable, plug3h, hole1, hole2);
-	var shape = union(plug1, plug2, plug3).subtract(cutout);
+	var shape = union(plug1, plug2, plug3).subtract(cutout).union(support);
 	switch (params.part) {
 		case 'piece':
 			return shape;
