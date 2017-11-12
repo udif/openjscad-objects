@@ -25,6 +25,37 @@ function getParameterDefinitions() {
     }];
 }
 
+function screws() {
+	var base_r = 12/2;
+	var base_w = base_r - 0.5;
+	var hole_rad = 3.2/2;
+	var hex_depth = 3;
+
+	var hex_bolt = CSG.cylinder({               // and its rounded version
+		start: [0, 0, base_w-hex_depth],
+		end: [0, 0, base_r],
+		radius: 3.3,
+		resolution: 6
+	});
+	var screw = CSG.cylinder({               // and its rounded version
+		start: [0, 0, -base_w],
+		end: [0, 0, base_r],
+		radius: hole_rad
+	});
+	var screw_head = CSG.cylinder({               // and its rounded version
+		start: [0, 0, -(base_w-2)],
+		end: [0, 0, -(base_w-4)],
+		radiusStart: 3,
+		radiusEnd: 1.5
+	}).union(CSG.cylinder({               // and its rounded version
+		start: [0, 0, -base_r],
+		end: [0, 0, -(base_w-2)],
+		radius: 3.2
+	}));
+	
+	return union(hex_bolt, screw, screw_head);
+}
+
 function main(params) {
     var resolutions = [
         [6, 16],
@@ -113,16 +144,8 @@ function main(params) {
 		//}))
 		;
 	//var plug3h = plug3.scale([util.scale(width, -walls_x), util.scale(length3, -walls_y), util.scale(thick3, -walls_z)]);
-	var hole1 = CSG.cylinder({
-		start: [(width/2+cable_r)/2, length1-walls_y1/2, 0],
-		end: [(width/2+cable_r)/2, length1-walls_y1/2, thick3],
-		radius: 2.8/2
-	});
-	var hole2 = CSG.cylinder({
-		start: [-(width/2+cable_r)/2, length1-walls_y1/2,0],
-		end: [-(width/2+cable_r)/2, length1-walls_y1/2, thick3],
-		radius: 2.8/2
-	});
+	var hole1 = screws().translate([ (width/2+cable_r)/2, length1-walls_y1/2, 0]);
+	var hole2 = screws().translate([-(width/2+cable_r)/2, length1-walls_y1/2, 0]);
 	var pin = CSG.cylinder({
 			start: [0,0,0],
 			end: [0, 0, pin_length],
