@@ -16,6 +16,16 @@ function getParameterDefinitions() {
         initial: 2,
         caption: 'Resolution:'
     }, {
+        name: 'x_support',
+        type: 'checkbox',
+        checked: true,
+        caption: 'X support:'
+    }, {
+        name: 'y_support',
+        type: 'checkbox',
+        checked: true,
+        caption: 'Y support:'
+    }, {
         name: 'part',
         type: 'choice',
         values: ['piece', 'half_piece_u', 'half_piece_d', 'holes_only'],
@@ -138,18 +148,33 @@ function main(params) {
 			resolution : CSG.defaultResolution3D
 		});
 	var support = null;
-	for (var i = 0; i < (length3-walls_y1-walls_y2); i += 2) {
-		var s = CSG.cube({
-			center: [0, length1-length3/2-i, 0],
-			radius: [(width-walls_x-fillet_r)/2, 0.2, (thick3-walls_z)/2]
-		});
-		if (support === null) {
-			support = s;
-		} else {
-			support = support.union(s);
+	var s;
+	if (params.y_support) {
+		for (var x = 0; x < (length3-walls_y1-walls_y2); x += 2) {
+			s = CSG.cube({
+				center: [0, length1-length3/2-x, 0],
+				radius: [(width-walls_x)/2-fillet_r, 0.23, (thick3-walls_z)/2]
+			});
+			if (support === null) {
+				support = s;
+			} else {
+				support = support.union(s);
+			}
 		}
 	}
-	//var plug3h = plug3.scale([util.scale(width, -walls_x), util.scale(length3, -walls_y), util.scale(thick3, -walls_z)]);
+	if (params.x_support) {
+		for (var y = -2; y <= 2 ; y++) {
+			s = CSG.cube({
+				center: [(width-walls_x-fillet_r)/2*y/3.0, length1-walls_y1-(length3-walls_y1-walls_y2)/2, 0],
+				radius: [0.23, (length3-walls_y1-walls_y2)/2-fillet_r, (thick3-walls_z)/2]
+			});
+			if (support === null) {
+				support = s;
+			} else {
+				support = support.union(s);
+			}
+		}
+	}
 	var hole1 = screws().translate([ (width/2+cable_r)/2, length1-walls_y1/2, 0]);
 	var hole2 = screws().translate([-(width/2+cable_r)/2, length1-walls_y1/2, 0]);
 	var pin = CSG.cylinder({
