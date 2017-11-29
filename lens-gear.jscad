@@ -65,7 +65,7 @@ function getParameterDefinitions() {
     }, {
         name: 'inner_n_r',
         type: 'float',
-        initial: 72/2,
+        initial: 70/2,
         caption: 'Inner narrow radius, covering the lens parrel itself'
     }, {
         name: 'outer_r',
