@@ -4,18 +4,18 @@
 //include ('jscad-utils.jscad')
 //include ('jscad-utils-color.jscad')
 function getParameterDefinitions() {
-
 	return [{
         name: 'resolution',
         type: 'choice',
         values: [0, 1, 2, 3, 4, 5],
-        captions: ['very low (6,16)', 'low (8,24)', 'normal (12,32)', 'high (24,64)', 'very high (48,128)', 'ultra high (96,256)'],
-        initial: 3,
+        captions: ['very low (6,16)', 'low (8,24)', 'normal (12,32)', 'high (24,64)', 'very high (48,128)',
+		'ultra high (96,256)'],
+        initial: 4,
         caption: 'Resolution:'
     }, {
         name: 'length',
         type: 'float',
-        initial: 23.0,
+        initial: 45.0,
         caption: 'Total adapter Length'
     }, {
         name: 'teeth',
@@ -55,7 +55,7 @@ function getParameterDefinitions() {
     }, {
         name: 'inner_length',
         type: 'float',
-        initial: 7.8,
+        initial: 24.8,
         caption: 'length of section with inner wide radius'
     }, {
         name: 'cone_slope',
@@ -80,7 +80,7 @@ function getParameterDefinitions() {
     }, {
         name: 'handle',
         type: 'checkbox',
-        checked: true,
+        checked: false,
         caption: 'Add handles to ease opening/closing the slot'
     }, {
         name: 'handle_distance',
@@ -125,7 +125,7 @@ function getParameterDefinitions() {
     }, {
         name: 'base',
         type: 'checkbox',
-        checked: false,
+        checked: true,
         caption: 'draw flat base'
     }, {
         name: 'base_thickness',
@@ -150,7 +150,7 @@ function main(params) {
         [24, 64],
         [48, 128],
         [96, 256]
-];
+	];
     CSG.defaultResolution3D = resolutions[params.resolution][0];
     CSG.defaultResolution2D = resolutions[params.resolution][1];
     //util.init(CSG);
@@ -270,6 +270,7 @@ function main(params) {
 	teeth3d = teeth3d.intersect(gear_bounding_cyl);
 	var base = ext_cyl.union(gear_bounding_cyl.intersect(union(gear_cyl, teeth3d))).subtract(union(in1_cyl, in2_cyl)).union(teeth3d);
 
+	var slot3d;
 	// Create a slot
 	if (slot_width > 0) {
 		var slot_radius = gear_bounding_r/slot_factor;
@@ -284,7 +285,7 @@ function main(params) {
 		var scale_factor1 = (outer_r+handle_radius)/gear_bounding_r;
 		var scale_factor2 = (outer_r+handle_distance)/gear_bounding_r;
 		var slot_angular_width = 360*slot_width/(2*pi*slot_radius);
-		var slot3d = cyl1.intersect(cyl1.rotateZ(180-slot_angular_width));
+		slot3d = cyl1.intersect(cyl1.rotateZ(180-slot_angular_width));
 		base = base.subtract(slot3d);
 		if (params.handle) {
 			var handle1 = cyl1.scale([scale_factor1, scale_factor1, 1])
@@ -345,7 +346,10 @@ function main(params) {
 			start: [0,0,0],
 			end: [0, 0, params.base_thickness],
 			radius: outer_r/slot_factor
-		}).subtract(slot3d));
+		}));
+		if (slot_width > 0) {
+			base = base.subtract(slot3d);
+		}
 	}
 
 /*	
