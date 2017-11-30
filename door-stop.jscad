@@ -1,5 +1,5 @@
 //
-// Door stop part
+// Door stop part.
 //
 //include ('jscad-utils.jscad')
 //include ('jscad-utils-color.jscad')
@@ -61,7 +61,7 @@ function main(params) {
 	var t1 = linear_extrude({height: r}, polygon([[-n, 0], [n, 0], [n+d+tt1, d], [-(n+d+tt1), d]]));
 	var t2 = linear_extrude({height: r}, polygon([[-n+tt2, 0], [n-tt2, 0], [n+d-tt2, d], [-(n+d-tt2), d]]))
 		.rotateX(-90).translate([0, 0, d]);
-	var t3 = linear_extrude({height: 2*(d-tt2)}, polygon([[0, 0], [0, d], [d2, 0]]))
+	var t3 = linear_extrude({height: 2*(d-tt2)}, polygon([[0, 0], [0, d], [d2, d]]))
 		.rotateY(-90)
 		.rotateX(90)
 		.translate([d-tt2, 0, 0]);
