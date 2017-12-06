@@ -26,6 +26,11 @@ function getParameterDefinitions() {
         checked: true,
         caption: 'Y support:'
     }, {
+        name: 'brim',
+        type: 'checkbox',
+        checked: true,
+        caption: 'custom brim'
+    }, {
         name: 'part',
         type: 'choice',
         values: ['piece', 'half_piece_u', 'half_piece_d', 'holes_only'],
@@ -35,31 +40,29 @@ function getParameterDefinitions() {
     }];
 }
 
-function screws() {
-	var base_r = 12/2;
-	var base_w = base_r - 0.5;
+function screws(length, depth, hex_depth) {
+	var base_w = length - 0.5;
 	var hole_rad = 3.2/2;
-	var hex_depth = 3;
 
 	var hex_bolt = CSG.cylinder({               // and its rounded version
 		start: [0, 0, base_w-hex_depth],
-		end: [0, 0, base_r],
+		end: [0, 0, length],
 		radius: 3.3,
 		resolution: 6
 	});
 	var screw = CSG.cylinder({               // and its rounded version
 		start: [0, 0, -base_w],
-		end: [0, 0, base_r],
+		end: [0, 0, length],
 		radius: hole_rad
 	});
 	var screw_head = CSG.cylinder({               // and its rounded version
-		start: [0, 0, -(base_w-2)],
-		end: [0, 0, -(base_w-4)],
+		start: [0, 0, -(base_w-depth)],
+		end: [0, 0, -(base_w-depth-2)],
 		radiusStart: 3,
 		radiusEnd: 1.5
 	}).union(CSG.cylinder({               // and its rounded version
-		start: [0, 0, -base_r],
-		end: [0, 0, -(base_w-2)],
+		start: [0, 0, -length],
+		end: [0, 0, -(base_w-depth)],
 		radius: 3.2
 	}));
 	
@@ -88,25 +91,37 @@ function main(params) {
 	var thick1 = 6;
 	var thick2 = 8.5;
 	var thick3 = 12;
-	var pin_r = 3/2;
+	var pin_r = 3.2/2;
 	var pin_spacing = 8;
 	var pin_length = 20;
+	var half_pin_length = 7;
 	var slot_loc = pin_spacing/2;
 	var slot_w = 1.5;
-	var cable_r = 3;
+	var cable_r = 5.8/2;
 	var cable_length = 10;
 	var walls_x = 2; // internal walls thickness
 	var walls_y1 = 8; // internal walls thickness
 	var walls_y2 = 2; // internal walls thickness
-	var walls_z = 6; // internal walls thickness
+	var walls_z = 4; // internal walls thickness
+	var brim_z = 0.3;
+	var brim_l_y = 10;
+	var brim_l_x = 10;
 
+	var brim_y = CSG.cube({
+			corner1: [-(width/2)-brim_l_x, -brim_l_y, -brim_z],
+			corner2: [ (width/2)+brim_l_x, 0      , brim_z]
+		});
+	var brim_x = CSG.cube({
+			corner1: [-(width/2)-brim_l_x, 0,      -brim_z],
+			corner2: [-(width/2)         , length1, brim_z]
+		});
 	var bounding_u = CSG.cube({
-			corner1: [-width/2, 0, 0],
-			corner2: [width/2, length1, thick2]
+			corner1: [-(width/2)-brim_l_x, -brim_l_y, 0],
+			corner2: [ (width/2)+brim_l_x, length1+brim_l_y, thick2]
 		});
 	var bounding_d = CSG.cube({
-			corner1: [-width/2, 0, 0],
-			corner2: [ width/2, length1, -thick2]
+			corner1: [-(width/2)-brim_l_x, -brim_l_y, 0],
+			corner2: [ (width/2)+brim_l_x, length1+brim_l_y, -thick2]
 		});
 	var slot = CSG.cube({
 			center: [-slot_loc,length1/2-(length2-length3),(thick2+thick1)/4],
@@ -150,10 +165,10 @@ function main(params) {
 	var support = null;
 	var s;
 	if (params.y_support) {
-		for (var x = 0; x < (length3-walls_y1-walls_y2); x += 2) {
+		for (var x = 0; x < (length3-walls_y1-walls_y2-2); x += 6) {
 			s = CSG.cube({
 				center: [0, length1-length3/2-x, 0],
-				radius: [(width-walls_x)/2-fillet_r, 0.23, (thick3-walls_z)/2]
+				radius: [(width-walls_x)/2, 0.23, 1]
 			});
 			if (support === null) {
 				support = s;
@@ -175,8 +190,9 @@ function main(params) {
 			}
 		}
 	}
-	var hole1 = screws().translate([ (width/2+cable_r)/2, length1-walls_y1/2, 0]);
-	var hole2 = screws().translate([-(width/2+cable_r)/2, length1-walls_y1/2, 0]);
+	var hole1 = screws(thick3/2, 2, 3).translate([ (width/2+cable_r)/2, length1-walls_y1/2, 0]);
+	var hole2 = screws(thick3/2, 2, 3).translate([-(width/2+cable_r)/2, length1-walls_y1/2, 0]);
+	var hole3 = screws(thick2/2, 1, 1).translate([pin_spacing/2, length1/2-(length2-length3), 0]);
 	var pin = CSG.cylinder({
 			start: [0,0,0],
 			end: [0, 0, pin_length],
@@ -191,8 +207,11 @@ function main(params) {
 	//
 	// Render
 	//
-	var cutout = union(pins, slot, cable, plug3h, hole1, hole2);
+	var cutout = union(pins.subtract(bounding_u.intersect(plug2).translate([0, 0, pin_r/2])), slot, cable, plug3h, hole1, hole2, hole3);
 	var shape = union(plug1, plug2, plug3).subtract(cutout).union(support);
+	if (params.brim) {
+		shape = union(shape, brim_x, brim_y, brim_y.translate([0, length1+brim_l_y, 0]), brim_x.translate([width+brim_l_x, 0, 0]));
+	}
 	switch (params.part) {
 		case 'piece':
 			return shape;
