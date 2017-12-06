@@ -42,7 +42,7 @@ function getParameterDefinitions() {
 
 function screws(length, depth, hex_depth) {
 	var base_w = length - 0.5;
-	var hole_rad = 3.2/2;
+	var hole_rad = 3.2/2; // M3
 
 	var hex_bolt = CSG.cylinder({               // and its rounded version
 		start: [0, 0, base_w-hex_depth],
@@ -91,7 +91,7 @@ function main(params) {
 	var thick1 = 6;
 	var thick2 = 8.5;
 	var thick3 = 12;
-	var pin_r = 3.2/2;
+	var pin_r = 3.6/2;
 	var pin_spacing = 8;
 	var pin_length = 20;
 	var half_pin_length = 7;
@@ -99,11 +99,13 @@ function main(params) {
 	var slot_w = 1.5;
 	var cable_r = 5.8/2;
 	var cable_length = 10;
+	var cable_n_r = 4/2;
+	var cable_n_length = 2;
 	var walls_x = 2; // internal walls thickness
 	var walls_y1 = 8; // internal walls thickness
 	var walls_y2 = 2; // internal walls thickness
 	var walls_z = 4; // internal walls thickness
-	var brim_z = 0.3;
+	var brim_z = 0.2;
 	var brim_l_y = 10;
 	var brim_l_x = 10;
 
@@ -192,7 +194,9 @@ function main(params) {
 	}
 	var hole1 = screws(thick3/2, 2, 3).translate([ (width/2+cable_r)/2, length1-walls_y1/2, 0]);
 	var hole2 = screws(thick3/2, 2, 3).translate([-(width/2+cable_r)/2, length1-walls_y1/2, 0]);
-	var hole3 = screws(thick2/2, 1, 1).translate([pin_spacing/2, length1/2-(length2-length3), 0]);
+	var hole3 = screws(thick2/2, 0.2, thick2/2-2.4).translate([ pin_spacing/2, (length1-length3)-5.6/2, 0]);
+	var hole4 = screws(thick2/2, (thick2-thick1)/2, 2).rotateY(180).translate([-pin_spacing/2, (length1-length3)-5.6/2, 0]);
+	var holes = union(hole1, hole2, hole3, hole4);
 	var pin = CSG.cylinder({
 			start: [0,0,0],
 			end: [0, 0, pin_length],
@@ -202,12 +206,25 @@ function main(params) {
 			start: [0,0,0],
 			end: [0, 0, cable_length],
 			radius: cable_r
-		}).rotateX(90).translate([0, length1, 0]);
+		}).rotateX(90).translate([0, length1, 0]).subtract(
+			CSG.cylinder({
+				start: [0,0,0],
+				end: [0, 0, cable_n_length],
+				radius: cable_r
+			}).rotateX(90).translate([0, length1, 0]).subtract(
+				CSG.cylinder({
+					start: [0,0,0],
+					end: [0, 0, cable_n_length],
+					radius: cable_n_r
+				}).rotateX(90).translate([0, length1, 0])
+			)
+		);
+
 	var pins = union(pin, pin.translate([pin_spacing, 0, 0]), pin.translate([-pin_spacing, 0, 0]));
 	//
 	// Render
 	//
-	var cutout = union(pins.subtract(bounding_u.intersect(plug2).translate([0, 0, pin_r/2])), slot, cable, plug3h, hole1, hole2, hole3);
+	var cutout = union(pins.subtract(bounding_u.intersect(plug2).translate([0, 0, pin_r/2])), slot, cable, plug3h, holes);
 	var shape = union(plug1, plug2, plug3).subtract(cutout).union(support);
 	if (params.brim) {
 		shape = union(shape, brim_x, brim_y, brim_y.translate([0, length1+brim_l_y, 0]), brim_x.translate([width+brim_l_x, 0, 0]));
