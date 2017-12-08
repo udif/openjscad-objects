@@ -55,7 +55,7 @@ function getParameterDefinitions() {
     }, {
         name: 'inner_length',
         type: 'float',
-        initial: 24.8,
+        initial: 10,
         caption: 'length of section with inner wide radius'
     }, {
         name: 'cone_slope',
