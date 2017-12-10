@@ -88,6 +88,7 @@ function main(params) {
 	var length1 = 34;
 	var length2 = 34 - 7.5;
 	var length3 = 20;
+	var length_pin_stop = 2;
 	var thick1 = 6;
 	var thick2 = 8.5;
 	var thick3 = 12;
@@ -128,6 +129,10 @@ function main(params) {
 	var slot = CSG.cube({
 			center: [-slot_loc,length1/2-(length2-length3),(thick2+thick1)/4],
 			radius: [slot_w/2,(length2-length3)/2,(thick2-thick1)/4]
+		});
+	var pin_stop = CSG.cube({
+			corner1: [-(width/2), length1-length2, 0],
+			corner2: [ (width/2), length1-(length2-length_pin_stop), 3]
 		});
 
 	var bounding3 = CSG.cube({
@@ -207,6 +212,7 @@ function main(params) {
 			end: [0, 0, cable_length],
 			radius: cable_r
 		}).rotateX(90).translate([0, length1, 0]).subtract(
+			// Ring that holds the cable
 			CSG.cylinder({
 				start: [0,0,0],
 				end: [0, 0, cable_n_length],
@@ -224,7 +230,7 @@ function main(params) {
 	//
 	// Render
 	//
-	var cutout = union(pins.subtract(bounding_u.intersect(plug2).translate([0, 0, pin_r/2])), slot, cable, plug3h, holes);
+	var cutout = union(pins.subtract(pin_stop), slot, cable, plug3h, holes);
 	var shape = union(plug1, plug2, plug3).subtract(cutout).union(support);
 	if (params.brim) {
 		shape = union(shape, brim_x, brim_y, brim_y.translate([0, length1+brim_l_y, 0]), brim_x.translate([width+brim_l_x, 0, 0]));
