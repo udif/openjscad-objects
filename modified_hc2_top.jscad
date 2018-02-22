@@ -1,20 +1,44 @@
 //
-  // producer: OpenJSCAD.org Compatibility1.6.0 STL Binary Importer
-  // date: Thu Feb 22 2018 19:59:53 GMT+0200 (Jerusalem Standard Time)
-  // source: top_cover.STL
-  //
-  
+// producer: OpenJSCAD.org Compatibility1.6.0 STL Binary Importer
+// date: Thu Feb 22 2018 19:59:53 GMT+0200 (Jerusalem Standard Time)
+// source: top_cover.STL
+//
+
+// The original model's least problematic side for printing
+// has a slight diagonal slope.
+// We fix this by changing every point below a certain Z threshold to 0.
+// We find this threshold since by pure coincidence,
+// this point also has the biggest Y
   function main () {
-      return cover_top()
-	  .rotateY(180)
-//	  .translate([0, 0, 51.965091705322266]);
-	  .translate([0, 0, 100]);
+	  var points = f_points();
+	  var polygons = f_polygons();
+	  var npoints = points.length;
+	  // We need this to fix 
+	  var maxy = points[0][1];
+	  // We need this to raise the model to height 0
+	  var maxz = points[0][2];
+	  // Z value of the point that has the maximum Y
+	  var maxy_z;
+	  for (var i = 1; i < npoints; i++) {
+		  if (maxy >= points[i][1]) {
+			  maxy = points[i][1];
+			  maxy_z = max(maxy_z, points[i][2]);
+		  }
+		  maxz = max(maxz, points[i][2]);
+	  }
+	  for (var i = 1; i < npoints; i++) {
+		  if (points[i][2] >= maxy_z) {
+			  points[i][2] = maxz;
+		  }
+	  }
+      return union(polyhedron({ points: points, polygons: polygons}))
+	  .rotateX(180)
+	  .translate([0, 0, maxz]);
   };
   
-  function cover_top() { return union(
 // objects: 1
 // object #undefined: triangles: 6122
-polyhedron({ points: [
+function f_points () { return [
 	[80.8763656616211,21.649999618530273,51.965091705322266],
 	[82.25374603271484,23.16004180908203,51.99144744873047],
 	[82.15337371826172,23.300186157226562,51.993896484375],
@@ -18380,8 +18404,10 @@ polyhedron({ points: [
 	[48.27629470825195,22.843955993652344,48.219242095947266],
 	[48.27629470825195,22.908872604370117,48.27396011352539],
 	[34.27629470825195,22.908872604370117,48.27396011352539],
-	[48.27629470825195,22.843955993652344,48.219242095947266]],
-	polygons: [
+	[48.27629470825195,22.843955993652344,48.219242095947266]];
+};
+
+function f_polygons () { return [
 	[0,1,2],
 	[3,4,5],
 	[6,7,8],
@@ -24503,5 +24529,5 @@ polyhedron({ points: [
 	[18354,18355,18356],
 	[18357,18358,18359],
 	[18360,18361,18362],
-	[18363,18364,18365]] })
-); }
+	[18363,18364,18365]];
+};
