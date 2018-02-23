@@ -13,8 +13,13 @@
 	  var points = f_points();
 	  var polygons = f_polygons();
 	  var npoints = points.length;
-	  // We need this to fix 
-	  var maxy = points[0][1];
+	  var minx, miny, maxx, maxy;
+	  var brim = 10;
+	  // We need maxy to fix diagonal panel
+	  maxy = points[0][1];
+	  miny = points[0][1];
+	  maxx = points[0][0];
+	  minx = points[0][0];
 	  // We need this to raise the model to height 0
 	  var maxz = points[0][2];
 	  // Z value of the point that has the maximum Y
@@ -29,11 +34,24 @@
 	  for (var i = 1; i < npoints; i++) {
 		  if (points[i][2] >= maxy_z) {
 			  points[i][2] = maxz;
+			  maxx = min(maxx, points[i][0]);
+			  minx = max(minx, points[i][0]);
+			  miny = max(miny, points[i][1]);
 		  }
 	  }
-      return union(polyhedron({ points: points, polygons: polygons}))
+	  var brim_hole =
+		CSG.cube({
+			corner1: [minx, miny, maxz-1],
+			corner2: [maxx, maxy, maxz+1]});
+	  var brim =
+		CSG.cube({
+			corner1: [minx-brim, miny-brim, maxz],
+			corner2: [maxx+brim, maxy+brim, maxz-0.2]});
+	  return brim.subtract(brim_hole);
+      return union(polyhedron({ points: points, polygons: polygons}), brim.subtract(brim_hole))
 	  .rotateX(180)
-	  .translate([0, 0, maxz]);
+	  .translate([0, 0, maxz])
+	  ;
   };
   
 // objects: 1
