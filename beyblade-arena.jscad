@@ -53,8 +53,8 @@ function getParameterDefinitions() {
     }, {
         name: 'part',
         type: 'choice',
-        values: ['piece', 'test_pin'],
-        captions: ['piece',  'test block for pin'],
+        values: ['piece', 'test_pin', 'test_notch'],
+        captions: ['piece',  'test block for pin', 'test block for notch'],
         initial: 'piece',
         caption: 'Part:'
     }];
@@ -88,6 +88,7 @@ function main(params) {
 	// Outer diameter of the adapter
 	var notch_l = params.notch_l;
 	var notch_r = params.notch_r;
+	var pin_l = notch_l - 2;
 
 	//
 	// Calculated:
@@ -119,19 +120,19 @@ function main(params) {
 		);
 	var notch = CSG.cylinder({
 			start: [0,0,0],
-			end: [notch_l-1, 0, 0],
+			end: [notch_l+1, 0, 0],
 			radius: notch_r,
 			resolution: 8
 		}).rotateX(360/8/2).translate([0, 0, notch_r*Math.sin((360/8/2)*(180/pi))]);
 	var pin = CSG.cylinder({
 			start: [0,0,0],
-			end: [0, notch_l, 0],
+			end: [0, pin_l, 0],
 			radius: notch_r-0.1,
 			resolution: 8
 		}).rotateY(360/8/2).translate([0, 0, notch_r*Math.sin((360/8/2)*(180/pi))]);
 	var arena_notch_pin = arena_qtr
-		.union(pin.translate([arena_r*1/3, -notch_l, 0]))
-		.union(pin.translate([arena_r*2/3, -notch_l, 0]))
+		.union(pin.translate([arena_r*1/3, -pin_l, 0]))
+		.union(pin.translate([arena_r*2/3, -pin_l, 0]))
 		.subtract(notch.translate([0, arena_r*2/3, 0]))
 		.subtract(notch.translate([0, arena_r*1/3, 0]))
 		;
@@ -145,5 +146,9 @@ function main(params) {
 			return arena_notch_pin.intersect(CSG.cube({
 			center: [0, arena_r*1/3, notch_r],
 			radius: [notch_l+5, notch_r+5, notch_r+5]}));
+		case 'test_notch':
+			return arena_notch_pin.intersect(CSG.cube({
+			center: [arena_r*1/3, -pin_l/2, notch_r],
+			radius: [notch_r+5, pin_l/2+5, notch_r+5]}));
 	}
 }	
