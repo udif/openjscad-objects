@@ -53,8 +53,8 @@ function getParameterDefinitions() {
     }, {
         name: 'part',
         type: 'choice',
-        values: ['piece', 'piece_with_slot'],
-        captions: ['piece',  'piece with middle slot'],
+        values: ['piece', 'test_pin'],
+        captions: ['piece',  'test block for pin'],
         initial: 'piece',
         caption: 'Part:'
     }];
@@ -141,5 +141,9 @@ function main(params) {
 	switch (params.part) {
 		case 'piece':
 			return arena_notch_pin;
+		case 'test_pin':
+			return arena_notch_pin.intersect(CSG.cube({
+			center: [0, arena_r*1/3, notch_r],
+			radius: [notch_l+5, notch_r+5, notch_r+5]}));
 	}
 }	
