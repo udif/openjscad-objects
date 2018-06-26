@@ -44,15 +44,23 @@ function main(params) {
 	// Length of outside part
 	var total_height = 15.92;
 	// dimensions of tooth holding the shelve
+	var fillet_r = 1;
 	tooth_x = small_r*2;
 	tooth_y = 10;
 	tooth_z = 15;
 
-	var small_cyl = CSG.cylinder({
+	var fillet = CSG.cylinder({
 			start: [0,0,0],
-			end: [0, 0, small_height],
-			radius: small_r
-		});
+			end: [0, 0, fillet_r],
+			radius: small_r+fillet_r
+		}).subtract(torus({ ro: small_r+fillet_r, ri: (fillet_r) }).translate([0, 0, fillet_r]));
+
+	var small_cyl = CSG.cylinder({
+		start: [0,0,0],
+		end: [0, 0, small_height],
+		radius: small_r
+	}).union(fillet).rotateX(180).translate([0, 0, small_height]);
+
 	var large_cyl = CSG.cylinder({
 			start: [0,0,small_height],
 			end: [0, 0, total_height-large_r],
@@ -70,12 +78,20 @@ function main(params) {
 	//
 	// Render
 	//
+	//return fillet;
+	//return small_cyl;
 	switch (params.part) {
 		case 'piece':
 			return union(large_cyl, small_cyl, half_dome);
 
 		case 'flat_piece':
-			return union(small_cyl, tooth).rotateY(90);
+			return union(small_cyl, tooth).
+				rotateY(90)
+				.intersect(CSG.cube({
+					center: [0,0,small_height+tooth_z/2],
+					radius: [tooth_x/2,tooth_y/2,tooth_z/2+small_height]})
+					.rotateY(90)
+				);
 	}
 
 }	
