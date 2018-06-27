@@ -34,11 +34,11 @@ function main(params) {
 	var disc_width = ring_width - 2*2.1;
 	var inner_radius = 9/2;
 	var inner_width = 6.2-1;
-	var hole_radius = 4.8/2;
+	var hole_radius = 5/2;
 	var pipe_r = 6;
 	var pipe_l = 6;
-	var plate_width = 12;
-	var plate_length = 9.3;
+	var plate_width = 9.3;
+	var plate_length = 12;
 	var plate_thickness = 2;
 
 	var half_ring = CSG.cylinder({
@@ -63,7 +63,8 @@ function main(params) {
 		start: [0, 0, -inner_width/2],
 		end: [0, 0, inner_width/2],
 		resolution: 6,
-		radius: hole_radius / Math.sin((360/6)/(180/pi))
+		// calculate radius of bounding circle to polygon given the required bounded circle radius
+		radius: hole_radius / Math.cos((360/6)/2/(180/pi))
 	}).rotateZ(360/6/2));
 	var ring = half_ring.union(half_ring.rotateX(180));
 	var wire_in = cube({
