@@ -32,9 +32,11 @@ var base_z = 10;
 var base_w1 = 5.1;
 var base_w2 = 2.3;
 var base_w3 = 4+base_w2/2;
+var base_w4 = 2;
 var base_h1 = 1.1;
 var base_h2 = 1.5;
-var base_h3 = 1;
+var base_h3 = 2;
+var base_h4 = 4+base_h3;
 var base_m = 30; // base margins
 var hook_r = 1;
 var base_total = ((pin_loc(19)-pin_loc(0))+base_m);
@@ -73,6 +75,10 @@ function main(params) {
 		size: [base_w3, base_h3, base_z],
 		center: [false, false, false]
 	}).translate([-base_w2/2, base_h1+base_h2, 0]))
+	.union(cube({
+		size: [base_w4, base_h4, base_z],
+		center: [false, false, false]
+	}).translate([-base_w2/2+base_w3, base_h1+base_h2+base_h3-base_h4, 0]))
 	;
 	
 	var handle = cube({
