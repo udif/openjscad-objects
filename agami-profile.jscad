@@ -149,31 +149,27 @@ function pin(r=21, r2=15, fn=8) {
 	var pin_w = r2*Math.sin(360/8/2/(180/3.14159));
 	var pin_r = r2/2*Math.cos(360/8/2/(180/3.14159));
 	var pin_l = r/2-pin_r+fillet_l;
+
 	var cyl_params = {
-		r1 : r2/2,
+		r1 : r2/2-fillet_l,
 		r2 : r2/2,
-		start: [0, 0, -base_z/2+fillet_l],
-		end: [0, 0, base_z/2-fillet_l],
+		start: [0, 0, -base_z/2],
+		end: [0, 0, -base_z/2+fillet_l],
 		center: [true, true, true]
 	};
 	if (fn)
 		cyl_params.fn = fn;
-	var res =
-		cylinder(cyl_params);
-		.union(cylinder({
-			r1 : r2/2-fillet_l,
-			r2 : r2/2,
-			fn: 8,
-			start: [0, 0, -base_z/2],
-			end: [0, 0, -base_z/2+fillet_l],
- 			center: [true, true, true]}))
-		.union(cylinder({
-			r1 : r2/2,
-			r2 : r2/2-fillet_l,
-			fn: 8,
-			start: [0, 0, base_z/2-fillet_l],
-			end: [0, 0, base_z/2],
- 			center: [true, true, true]}))
+	var res = cylinder(cyl_params);
+	cyl_params.r1 = cyl_params.r2;
+	cyl_params.start = cyl_params.end;
+	cyl_params.end = [0, 0, base_z/2-fillet_l];
+	var res = res.union(cylinder(cyl_params));
+	cyl_params.r1 = cyl_params.r2;
+	cyl_params.start = cyl_params.end;
+	cyl_params.end = [0, 0, base_z/2];
+	cyl_params.r2 = r2/2-fillet_l;
+	var res = res
+		.union(cylinder(cyl_params))
 		.rotateZ(360/8/2)
 		.union(cube({
 				size: [pin_l, pin_w, base_z],
