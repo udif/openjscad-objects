@@ -116,25 +116,8 @@ function mount(r=21, r2=15, m=2) {
 			size: [cs, cs, base_z],
 			center: [true, true, true]
 		})
-		.subtract(cylinder({
-			r1 : r2/2,
-			r2 : r2/2,
-			start: [0, 0, -base_z/2],
-			end: [0, 0, base_z/2],
- 			center: [true, true, true]}))
-		.subtract(cylinder({
-			r1 : r2/2+1,
-			r2 : r2/2,
-			start: [0, 0, -base_z/2],
-			end: [0, 0, -base_z/2+1],
- 			center: [true, true, true]}))
-		.subtract(cylinder({
-			r1 : r2/2,
-			r2 : r2/2+1,
-			start: [0, 0, base_z/2-1],
-			end: [0, 0, base_z/2],
- 			center: [true, true, true]}))
-		.subtract(pin(r, r2))
+		.subtract(pin(cs, r2, base_z+1, 0, 0, 0.5))
+		//.union(pin(cs, r2))
 		.translate([cs/2, cs/2, base_z/2])
 		;
 	return res;
@@ -143,43 +126,46 @@ function mount(r=21, r2=15, m=2) {
 //
 // compatible pin for mount() above
 //
-function pin(r=21, r2=15, fn=8) {
+function pin(r=21, r2=15, h = base_z, fn=8, fillet_l = 1, w=0) {
 	// size of octagon 
-	var fillet_l = 1;
 	var pin_w = r2*Math.sin(360/8/2/(180/3.14159));
-	var pin_r = r2/2*Math.cos(360/8/2/(180/3.14159));
-	var pin_l = r/2-pin_r+fillet_l;
+	var pin_r = (r2/2-fillet_l)*Math.cos(360/8/2/(180/3.14159));
+	var l = 0.5; // fudge factor for fitting pin
+	var pin_l = r/2-pin_r+l;
 
 	var cyl_params = {
-		r1 : r2/2-fillet_l,
+		r1 : r2/2,
 		r2 : r2/2,
-		start: [0, 0, -base_z/2],
-		end: [0, 0, -base_z/2+fillet_l],
+		start: [0, 0, -h/2+fillet_l],
+		end: [0, 0, h/2-fillet_l],
 		center: [true, true, true]
 	};
 	if (fn)
 		cyl_params.fn = fn;
 	var res = cylinder(cyl_params);
-	cyl_params.r1 = cyl_params.r2;
-	cyl_params.start = cyl_params.end;
-	cyl_params.end = [0, 0, base_z/2-fillet_l];
-	var res = res.union(cylinder(cyl_params));
-	cyl_params.r1 = cyl_params.r2;
-	cyl_params.start = cyl_params.end;
-	cyl_params.end = [0, 0, base_z/2];
-	cyl_params.r2 = r2/2-fillet_l;
-	var res = res
-		.union(cylinder(cyl_params))
-		.rotateZ(360/8/2)
+	if (fillet_l) {
+		cyl_params.r2 -= fillet_l;
+		cyl_params.start = cyl_params.end;
+		cyl_params.end = [0, 0, h/2];
+		res = res.union(cylinder(cyl_params));
+		var t = cyl_params.r2;
+		cyl_params.r2 = cyl_params.r1;
+		cyl_params.r1 = t;
+		cyl_params.start = [0, 0, -h/2];
+		cyl_params.end = [0, 0, -h/2+fillet_l];
+		res = res.union(cylinder(cyl_params));
+	}
+	res =
+		res.rotateZ(360/8/2)
 		.union(cube({
-				size: [pin_l, pin_w, base_z],
+				size: [pin_l, pin_w+w, h],
 				center: [true, true, true]})
 				.union(cube({
-					size: [2, pin_w+4, base_z],
+					size: [2, pin_w+4, h],
 					center: [false, true, true]})
 				.translate([pin_l/2, 0, 0])
 				)
-			.translate([pin_l/2-fillet_l+pin_r, 0, 0]))
+			.translate([pin_l/2+pin_r, 0, 0]))
 		;
 	return res;
 }
@@ -205,7 +191,49 @@ function main(params) {
     CSG.defaultResolution3D = resolutions[params.resolution][0];
     CSG.defaultResolution2D = resolutions[params.resolution][1];
 
-
+	var spring_bump = 0.2;
+	var spring_head = linear_extrude({height: base_h1}, 
+		polygon([
+			[0, 0, 0],
+			[0, spring_bump, 0],
+			[spring_bump, 0, 0]
+		])
+	).rotateX(-90)
+	.translate([0, 0, 0]);
+	var spring_head_right_left =
+		union(
+			spring_head.translate([ base_w1/2, 0, 3*base_z/8]),
+			spring_head.rotateY(90).translate([-base_w1/2, 0, 3*base_z/8])
+			);
+	var spring_head_all =
+		spring_head_right_left.union(
+			spring_head_right_left.rotateX(180).translate([0, base_h1, 8*base_z/8])
+			);
+	var fix_head = 	linear_extrude({height: base_w1}, 
+		polygon([
+			[0, 0, 0],
+			[0, base_h1+base_h2, 0],
+			[base_h1+base_h2, 0, 0]
+		])
+	).rotateY(-90)
+	.translate([base_w1/2, 0, 0]);
+	fix_head = fix_head
+		// 0.05 factor is unexplained. Bug?
+		.union(fix_head.rotateZ(90) .translate([ (base_w1+base_w2)/2+0.05, 0, base_h2]))
+		.union(fix_head.rotateZ(-90).translate([-(base_w1+base_w2)/2-0.05, 0, base_h2]));
+	var spring_cut = cube({
+		size: [base_w1-1, base_h1, base_z/2],
+		center: [true, false, false]
+	})
+	.translate([0, 0, base_z/4]);
+	var spring = cube({
+		size: [base_w1+2*spring_bump, base_h1, base_z/4],
+		center: [true, false, false]
+	}).subtract(cube({
+		size: [base_w1, base_h1, base_z/4],
+		center: [true, false, false]
+	}))
+	.translate([0, 0, 3*base_z/8]);
 	var base = cube({
 		size: [base_w1, base_h1, base_z],
 		center: [true, false, false]
@@ -230,6 +258,10 @@ function main(params) {
 		size: [base_w6, base_h6, base_z],
 		center: [false, false, false]
 	}).translate([-base_w2/2+base_w3+base_w5-base_w6, base_h1+base_h2+base_h3-base_h4-base_h6, 0]))
+	.subtract(fix_head)
+	.subtract(spring_cut)
+	.union(spring)
+	.union(spring_head_all)
 	;
 	var floor_x = -base_w2/2+base_w3+base_w5-base_w6;
 	var floor_y = base_h1+base_h2+base_h3-base_h4-base_h6;
