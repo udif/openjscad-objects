@@ -15,9 +15,9 @@ function getParameterDefinitions() {
     }, {
         name: 'part',
         type: 'choice',
-        values: ['piece'],
-        captions: ['piece'],
-        initial: 'piece',
+        values: ['left', 'right'],
+        captions: ['left window switch', 'right window switch'],
+        initial: 'left',
         caption: 'Part:'
     }];
 }
@@ -76,21 +76,32 @@ function main(params) {
 	var piece =
 	CSG.cube ({radius: [base_w/2, base_l/2, base_h/2]})
 	.subtract(CSG.cube ({radius: [base_w/2-thickness, base_l/2-thickness, base_h/2]}))
-	.union(axis1.rotateX(90).translate([0, -(base_l/2-thickness/2), base_h/2-axis_r1]))
-	.union(axis2.rotateX(-90).translate([0,  (base_l/2-thickness/2), base_h/2-axis_r1]))
 	.subtract(pin1.rotateX(90).translate([-(base_w/2-pin_w), -(base_l/2-thickness), pin_h-base_h/2]))
 	.subtract(pin2.rotateX(-90).translate([-(base_w/2-pin_w),  (base_l/2-thickness), pin_h-base_h/2]))
-	.rotateX(180)
-	.intersect(CSG.cube ({radius: [base_w/2, base_l/2+axis_l, base_h/2]}))
-	//.subtract(CSG.cube ({radius: [base_w/2, 1, base_h/2]}).translate([-base_w/2, 0, 0]))
 
-	;
+	if (params.part == 'left') {
+	}
+	
 
 	//
 	// Render
 	//
 	switch (params.part) {
-		case 'piece':
-			return piece;
+		case 'left':
+			piece = piece
+				.union(axis1.rotateX(90).translate([0, -(base_l/2-thickness/2), base_h/2-axis_r1]))
+				.union(axis2.rotateX(-90).translate([0,  (base_l/2-thickness/2), base_h/2-axis_r1]));
+				
+		case 'right':
+			piece = piece
+				.union(axis1.rotateX(90).translate([0, -(base_l/2-thickness/2), base_h/2-axis_r1]))
+				//.union(axis2.rotateX(-90).translate([0,  (base_l/2-thickness/2), base_h/2-axis_r1]));
 	}
+	piece = piece
+		.rotateX(180)
+		.intersect(CSG.cube ({radius: [base_w/2, base_l/2+axis_l, base_h/2]}))
+		//.subtract(CSG.cube ({radius: [base_w/2, 1, base_h/2]}).translate([-base_w/2, 0, 0]))
+	;
+
+	return piece;
 }	
