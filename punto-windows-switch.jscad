@@ -78,11 +78,8 @@ function main(params) {
 	.subtract(CSG.cube ({radius: [base_w/2-thickness, base_l/2-thickness, base_h/2]}))
 	.subtract(pin1.rotateX(90).translate([-(base_w/2-pin_w), -(base_l/2-thickness), pin_h-base_h/2]))
 	.subtract(pin2.rotateX(-90).translate([-(base_w/2-pin_w),  (base_l/2-thickness), pin_h-base_h/2]))
-
-	if (params.part == 'left') {
-	}
+	;
 	
-
 	//
 	// Render
 	//
