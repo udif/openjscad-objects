@@ -44,6 +44,11 @@ function main(params) {
 	var axis_l = 4.7/2;
 	var axis_r1 = 1.9/2;
 	var axis_r2 = 2.9/2;
+	var pin_h = 1;
+	var pin_w = 1.5;
+	var pin_l = 2/2;
+	var pin_r1 = 1.5/2;
+	var pin_r2 = 1.5/2;
 
 	var axis1 = CSG.cylinder({
 			start: [0,0,0],
@@ -56,13 +61,29 @@ function main(params) {
 			radius: axis_r2
 		});
 
+	// Hold part in place using drilled holes in the original switch
+	var pin1 = CSG.cylinder({
+			start: [0,0,0],
+			end: [0, 0, pin_l+thickness/2],
+			radius: pin_r1
+		});
+	var pin2 = CSG.cylinder({
+			start: [0,0,0],
+			end: [0, 0, pin_l+thickness/2],
+			radius: pin_r2
+		});
+		
 	var piece =
 	CSG.cube ({radius: [base_w/2, base_l/2, base_h/2]})
 	.subtract(CSG.cube ({radius: [base_w/2-thickness, base_l/2-thickness, base_h/2]}))
 	.union(axis1.rotateX(90).translate([0, -(base_l/2-thickness/2), base_h/2-axis_r1]))
 	.union(axis2.rotateX(-90).translate([0,  (base_l/2-thickness/2), base_h/2-axis_r1]))
+	.union(pin1.rotateX(90).translate([-(base_w/2-pin_w), -(base_l/2-thickness/2), pin_h-base_h/2]))
+	.union(pin2.rotateX(-90).translate([-(base_w/2-pin_w),  (base_l/2-thickness/2), pin_h-base_h/2]))
 	.rotateX(180)
 	.intersect(CSG.cube ({radius: [base_w/2, base_l/2+axis_l, base_h/2]}))
+	.subtract(CSG.cube ({radius: [base_w/2, 1, base_h/2]}).translate([-base_w/2, 0, 0]))
+
 	;
 
 	//
