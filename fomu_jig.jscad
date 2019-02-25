@@ -30,6 +30,13 @@ let y_distance = 1.25; // Y hole row distance from the edge
 let pins = false; // change this to see how pins would appear in the holes
 let for_print = true; // change to false to see how the 2 modules interlock
 
+function getParameterDefinitions() {
+    return [
+        { name: 'pins',      type: 'checkbox', checked:false, initial: false, caption: 'Show pogo pins instead of holes?' }, 
+        { name: 'for_print', type: 'checkbox', checked:true, initial: true, caption: 'Show parts for print (if false, show how they connect)' }, 
+    ];
+}
+
 function block () {
     return cube({size: [x, y, z], center: false});
 }
@@ -45,8 +52,8 @@ function block_with_pins () {
         x_slot(8.20)
     )
     return mirror([0, 1, 0],
-        pins ? union     (block(), pins_obj)
-             : difference(block(), pins_obj)
+        params.pins ? union     (block(), pins_obj)
+                    : difference(block(), pins_obj)
     );
 
 }
@@ -106,7 +113,7 @@ function x_slot (dy=2, dx=x_distance) {
 
 function main() {
     var sleeve2 = sleeve().translate([0, -y, -base]);
-    sleeve2 = for_print ? sleeve2.rotateX(-90).translate([0, -20-y, 2*my+handle_y-base]) : sleeve2.translate([0, 0, -base]);
+    sleeve2 = params.for_print ? sleeve2.rotateX(-90).translate([0, -20-y, 2*my+handle_y-base]) : sleeve2.translate([0, 0, -base]);
     return union(
         jig(), sleeve2 //.rotateZ(180).translate([15, -15, z-base])
 //      sleeve().translate([0, 0, -z]).translate([0, -20, z-base])
