@@ -12,13 +12,13 @@
 let r=(1 + 0.10)/2; // pogo pin radius plus some FDM process slack
 let z=8; // height of main jig box
 let base=2; // sleeve base thickness
-let bumps = 4; // height of tirngle and semicircle locating the board
+let bumps = 5; // height of tirngle and semicircle locating the board
 let z_bumps=z+bumps; // total height
 let mx=2; // extra margin on each side for sleeve
 let my=2; // extra margin on one side for sleeve
 let x=10+2*mx; // board width plus extra margins
-let y=13+my; // board depth plus extra margin
-let extra_x=0; // extra X clearance for FDM process margins
+let y=13; // board depth plus extra margin
+let extra_x=0.2; // extra X clearance for FDM process margins
 let extra_y=0; // extra Y clearance for FDM process margins
 let extra_z=0.2; // extra Z clearance for FDM process margins
 let sleeve_z = base+z+bumps+extra_z;
@@ -29,7 +29,7 @@ let x_distance=1; // X hole row distance from the edge
 let y_distance = 1.25; // Y hole row distance from the edge
 let pins = false; // change this to see how pins would appear in the holes
 let for_print = true; // change to false to see how the 2 modules interlock
-
+let board_z = 3; // depth of board cavity
 function getParameterDefinitions() {
     return [
         { name: 'pins',      type: 'checkbox', checked:false, initial: false, caption: 'Show pogo pins instead of holes?' }, 
@@ -64,13 +64,14 @@ function jig () {
         // handle
         cube({size: [x+2*handle_x_extra, handle_y, z], center: false}).translate([-handle_x_extra, -(y+handle_y), 0]),
         // half circle notch in board
-        cylinder({r:1.5/2, h:z_bumps, center:false}).translate([mx, -11-my, 0]),
+        cylinder({r:1.5/2, h:z_bumps, center:false}).translate([mx, -11, 0]),
         // cube holding semi circle
-        cube({size:[mx, y-8.20-my-r, z_bumps], center:[false, false, false]}).translate([0, -y, 0]),
-        linear_extrude({height:bumps}, mirror([0, 1, 0], polygon([[x-mx,y-my], [x-mx-corner,y-my], [x-mx, y-my-corner]])))
-        .translate([0, -my, z]),
+        cube({size:[mx, y-8.20-r, z_bumps], center:[false, false, false]}).translate([0, -y, 0]),
+		// corner triangle
+        linear_extrude({height:bumps}, mirror([0, 1, 0], polygon([[x-mx,y], [x-mx-corner,y], [x-mx, y-corner]])))
+        .translate([0, 0, z]),
         // cube holding triangle
-        cube({size:[mx, y-8.20-my-r, z_bumps], center:[false, false, false]}).translate([x-mx, -y, 0])
+        cube({size:[mx, y-8.20-r, z_bumps], center:[false, false, false]}).translate([x-mx, -y, 0])
     );
 
 }
@@ -81,8 +82,14 @@ function sleeve () {
             cube({size: [x+2*mx, y+my, sleeve_z], center: false}),
             // Subtract inner space from top to bottom
             cube({size: [x-2*mx+extra_x/2-(x_distance-r), y-(my-extra_y)-(y_distance-r), sleeve_z], center: false}).translate([2*mx+(x_distance-r), 0, 0]),
+            // Subtract board cavity
+            cube({size: [x-2*mx+extra_x/2, y-(my-extra_y)-(y_distance-r), board_z], center: false}).translate([2*mx, 0, sleeve_z-board_z]),
             // Subtract wider slot that holds the pins in place
             cube({size: [x+extra_x, y+extra_y, (z+extra_z)], center: false}).translate([mx-extra_x/2, 0, base]),
+            // subtract diagonal1
+            linear_extrude({height:sleeve_z-base}, polygon([[mx,mx], [mx,0], [0, 0]])).translate([0, 0, base]),
+            // subtract diagonal2
+            linear_extrude({height:sleeve_z-base}, polygon([[x+2*mx,0], [x+mx,mx], [x+mx, 0]])).translate([0, 0, base]),
             // Subtract outer cut for PCB fixture pins
             cube({size: [x+extra_x, y-8.20-my-r, sleeve_z], center: false}).translate([mx-extra_x/2, 0, base+z])
         )
@@ -92,22 +99,15 @@ function sleeve () {
 }
 function y_slot (dx, dy=y_distance) {
     return union(
-        cylinder({r:r, h:3*z, center: false}).translate([dx+mx, dy+my, -z]),
-        cube({size:[2*r, dy+my ,z], center:[true, false, false]}).translate([dx+mx, 0, 0])
-    );
-}
-
-function y_neg_slot (dx, dy=y_distance) {
-    return union(
         cylinder({r:r, h:3*z, center: false}).translate([dx+mx, dy, -z]),
-        cube({size:[2*r, y ,z], center:[true, false, false]}).translate([dx+mx, dy, 0])
+        cube({size:[2*r, dy ,z], center:[true, false, false]}).translate([dx+mx, 0, 0])
     );
 }
 
 function x_slot (dy=2, dx=x_distance) {
     return union(
-        cylinder({r:r, h:3*z, center: false}).translate([dx+mx, dy+my, -z]),
-        cube({size:[dx+mx, 2*r, z], center:[false, true, false]}).translate([0, dy+my, 0])
+        cylinder({r:r, h:3*z, center: false}).translate([dx+mx, dy, -z]),
+        cube({size:[dx+mx, 2*r, z], center:[false, true, false]}).translate([0, dy, 0])
     );
 }
 
