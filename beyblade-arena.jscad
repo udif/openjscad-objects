@@ -147,8 +147,12 @@ function main(params) {
 			center: [0, arena_r*1/3, notch_r],
 			radius: [notch_l+5, notch_r+5, notch_r+5]}));
 		case 'test_notch':
-			return arena_notch_pin.intersect(CSG.cube({
-			center: [arena_r*1/3, -pin_l/2, notch_r],
-			radius: [notch_r+5, pin_l/2+5, notch_r+5]}));
+			return arena_notch_pin
+			.intersect(CSG.cube({
+				center: [arena_r*1/3, -pin_l/2, notch_r+0.1],
+				radius: [notch_r+5, pin_l/2+5, notch_r+5-0.1]}))
+			.union(arena_notch_pin.intersect(CSG.cube({
+				radius: [notch_r+15, 15, 0.1]})));
+				center: [arena_r*1/3, 0, 0.1],
 	}
 }	
