@@ -64,9 +64,9 @@ function getParameterDefinitions() {
 
 function base_cut(r, w, h) {
     return difference(
-        cylinder({r1:r+w/2+h, r2:r+w/2, h:h, fn:fn}),
-        cylinder({r1:r-w/2-h, r2:r-w/2, h:h, fn:fn})
-    );
+        cylinder({r1:r+w/2+h, r2:r+w/2, h:h, fn:16}),
+        cylinder({r1:r-w/2-h, r2:r-w/2, h:h, fn:16})
+    ).rotateZ(360/32);
 }
 
 function middle_cut(r, w, h) {
@@ -147,8 +147,8 @@ function main(params) {
             )
     	);
     
-	var points1 = Array(34);
-	var points2 = Array(34);
+	var points1 = Array(steps+4);
+	var points2 = Array(steps+4);
 	var arena_base = notch_r*2;
 	var t;
 	for (i = 0; i <= steps; i++) {
@@ -168,55 +168,29 @@ function main(params) {
 	arena_qtr1 = rotate_extrude({fn:fn}, polygon({points: points1}));
 	arena_qtr2 = rotate_extrude({fn:fn}, polygon({points: points2}));
 
-	var arena_qtr =
+	var arena_qtr = difference(arena_qtr1, arena_qtr2);
+    for (i = 1; i < 11; i++) {
+        t = (i & 1) ? base_cut(i*(arena_base+1), 2, arena_base-1)
+                    : middle_cut(i*(arena_base+1), 2, (arena_base-3)/2).translate([0, 0, arena_base/2]);
+        t2 = middle_cut((i + 0.5)*(arena_base+1), 0, (arena_base-3)/4).translate([0, 0, 3*arena_base/4]);
+        arena_qtr = difference(arena_qtr, t, t2);
+    }
+    
+    arena_qtr =
         intersection(
-	        difference(
-    	        arena_qtr1,
-    	        arena_qtr2,
-    	        base_cut((arena_base+1), 2, arena_base-1),
-    	        middle_cut(2*(arena_base+1), 2, (arena_base-3)/2).translate([0, 0, arena_base/2]),
-    	        base_cut(3*(arena_base+1), 2, arena_base-1),
-    	        middle_cut(4*(arena_base+1), 2, (arena_base-3)/2).translate([0, 0, arena_base/2]),
-    	        base_cut(7*(arena_base+1)-3, 2, arena_base-1),
-    	        middle_cut(8*(arena_base+1)-3, 2, (arena_base-3)/2).translate([0, 0, arena_base/2]),
-    	        base_cut(9*(arena_base+1)-3, 2, arena_base-1)
-    	    ),
+            arena_qtr,
 	        cube({
     			center: [false, false, false],
     			size: [arena_r, arena_r, arena_top]
     	    })
 		);
 
-	var notchX = CSG.cylinder({
-			start: [0,0,0],
-			end: [notch_l+1, 0, 0],
-			radius: notch_r,
-			resolution: 8
-		}).rotateX(360/8/2).translate([0, 0, notch_r*Math.sin((360/8/2)*(180/pi))]);
-	var notchY = CSG.cylinder({
-			start: [0,0,0],
-			end: [notch_l+1, 0, 0],
-			radius: notch_r,
-			resolution: 8
-		}).rotateX(360/8/2).rotateZ(90).translate([0, 0, notch_r*Math.sin((360/8/2)*(180/pi))]);
-	var pin = CSG.cylinder({
-			start: [0,0,0],
-			end: [0, pin_l, 0],
-			radius: notch_r-0.1,
-			resolution: 8
-		}).rotateY(360/8/2).translate([0, 0, notch_r*Math.sin((360/8/2)*(180/pi))]);
-	var arena_notch_pin = arena_qtr
-		.subtract(notchY.translate([arena_r*1/3, 0, 0]))
-		.subtract(notchY.translate([arena_r*2/3, 0, 0]))
-		.subtract(notchX.translate([0, arena_r*2/3, 0]))
-		.subtract(notchX.translate([0, arena_r*1/3, 0]))
-		;
-	//	//
+	//
 	// Render
 	//
 	switch (params.part) {
 		case 'piece':
-			return arena_notch_pin;
+			return arena_qtr;
 		case 'test_pin':
 			return arena_notch_pin.intersect(CSG.cube({
 			center: [0, arena_r*1/3, notch_r],
