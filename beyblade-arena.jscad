@@ -1,6 +1,8 @@
 //
 // Dyson DC34 adapter with a flat nozzle for sucking air out of Vaccum bags
 //
+const fn = 48;
+
 function getParameterDefinitions() {
 	return [{
         name: 'resolution',
@@ -60,6 +62,17 @@ function getParameterDefinitions() {
     }];
 }
 
+function base_cut(r, w, h) {
+    return difference(
+        cylinder({r1:r+w/2+h, r2:r+w/2, h:h, fn:fn}),
+        cylinder({r1:r-w/2-h, r2:r-w/2, h:h, fn:fn})
+    );
+}
+
+function middle_cut(r, w, h) {
+    var c1 = base_cut(r, w, h);
+    return union(c1, c1.rotateX(180));
+}
 
 function main(params) {
     var resolutions = [
@@ -72,8 +85,7 @@ function main(params) {
 	];
     CSG.defaultResolution3D = resolutions[params.resolution][0];
     CSG.defaultResolution2D = resolutions[params.resolution][1];
-    //util.init(CSG);
-
+    const fn = 48;
 	//
 	// Input parameters
 	//
@@ -89,6 +101,7 @@ function main(params) {
 	var notch_l = params.notch_l;
 	var notch_r = params.notch_r;
 	var pin_l = notch_l - 2;
+	const steps = 60;
 
 	//
 	// Calculated:
@@ -96,28 +109,84 @@ function main(params) {
 
 
 	// Main cylinder
-	var arena_qtr = CSG.cylinder({
-			start: [0,0,0],
-			end: [0, 0, arena_h],
-			radius: arena_r
-		}).union(CSG.cylinder({
-			start: [0,0,0],
-			end: [0, 0, arena_top],
-			radius: arena_r
-		}).subtract(CSG.cylinder({
-			start: [0,0,0],
-			end: [0, 0, arena_top],
-			radius: (arena_r - arena_w)
-		}))
-		).subtract(CSG.sphere({
-			center: [0,0,0],
-			radius: (arena_slope_r)
-		}).scale([1, 1, arena_slope_d/arena_slope_r])
-			.translate([0, 0, arena_h]))
-		.intersect(CSG.cube({
-			corner1: [0, 0, 0],
-			corner2: [arena_r, arena_r, arena_top]})
+	let arena_wall =
+	    difference(
+			cylinder({
+				h: arena_top,
+				r: arena_r,
+				center: [true, true, false],
+				fn: fn
+			}),
+			cylinder({
+				h: arena_top,
+				r: (arena_r - arena_w),
+				center: [true, true, false],
+				fn: fn
+			})
 		);
+
+	var arena_qtr1 =
+    	difference(
+    		union(
+    			cylinder({
+    			    h: arena_h,
+    				r: arena_r,
+    				center: [true, true, false],
+					fn: fn
+    			}),
+    			arena_wall
+    		),
+    		translate([0, 0, arena_top],
+            	scale([1, 1, arena_slope_d/arena_slope_r],
+            	    sphere({
+                		r: (arena_slope_r),
+                		center:true,
+        				fn: fn
+                	})
+                )
+            )
+    	);
+    
+	var points1 = Array(34);
+	var points2 = Array(34);
+	var arena_base = notch_r*2;
+	var t;
+	for (i = 0; i <= steps; i++) {
+	    points1[i] = [i*arena_slope_r/steps, arena_base+((arena_top-arena_base)/(steps+1-i))];
+	    t = arena_base+((arena_top-arena_base)/(steps+1-i))-5;
+	    points2[i] = [i*arena_slope_r/steps+5,
+	                  (i < 0.73*steps) ? 0.01 :
+	                  (i > 0.9*steps) ? t :
+	                  min(t, (i-0.75*steps)*0.6*arena_slope_r/steps+5)];
+	}
+	points1[steps+1] = [arena_r, arena_top];
+	points1[steps+2] = [arena_r, 0];
+	points1[steps+3] = [0, 0];
+	points2[steps+1] = [arena_r+5, arena_top+5];
+	points2[steps+2] = [arena_r+5, 0];
+	points2[steps+3] = [0, 0];
+	arena_qtr1 = rotate_extrude({fn:fn}, polygon({points: points1}));
+	arena_qtr2 = rotate_extrude({fn:fn}, polygon({points: points2}));
+
+	var arena_qtr =
+        intersection(
+	        difference(
+    	        arena_qtr1,
+    	        arena_qtr2,
+    	        base_cut((arena_base+1), 2, arena_base-1),
+    	        middle_cut(2*(arena_base+1), 2, (arena_base-3)/2).translate([0, 0, arena_base/2]),
+    	        base_cut(3*(arena_base+1), 2, arena_base-1),
+    	        middle_cut(4*(arena_base+1), 2, (arena_base-3)/2).translate([0, 0, arena_base/2]),
+    	        base_cut(7*(arena_base+1)-3, 2, arena_base-1),
+    	        middle_cut(8*(arena_base+1)-3, 2, (arena_base-3)/2).translate([0, 0, arena_base/2]),
+    	        base_cut(9*(arena_base+1)-3, 2, arena_base-1)
+    	    ),
+	        cube({
+    			center: [false, false, false],
+    			size: [arena_r, arena_r, arena_top]
+    	    })
+		);
+
 	var notchX = CSG.cylinder({
 			start: [0,0,0],
 			end: [notch_l+1, 0, 0],
