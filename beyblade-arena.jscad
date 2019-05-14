@@ -118,12 +118,18 @@ function main(params) {
 			corner1: [0, 0, 0],
 			corner2: [arena_r, arena_r, arena_top]})
 		);
-	var notch = CSG.cylinder({
+	var notchX = CSG.cylinder({
 			start: [0,0,0],
 			end: [notch_l+1, 0, 0],
 			radius: notch_r,
 			resolution: 8
 		}).rotateX(360/8/2).translate([0, 0, notch_r*Math.sin((360/8/2)*(180/pi))]);
+	var notchY = CSG.cylinder({
+			start: [0,0,0],
+			end: [notch_l+1, 0, 0],
+			radius: notch_r,
+			resolution: 8
+		}).rotateX(360/8/2).rotateZ(90).translate([0, 0, notch_r*Math.sin((360/8/2)*(180/pi))]);
 	var pin = CSG.cylinder({
 			start: [0,0,0],
 			end: [0, pin_l, 0],
@@ -131,10 +137,10 @@ function main(params) {
 			resolution: 8
 		}).rotateY(360/8/2).translate([0, 0, notch_r*Math.sin((360/8/2)*(180/pi))]);
 	var arena_notch_pin = arena_qtr
-		.union(pin.translate([arena_r*1/3, -pin_l, 0]))
-		.union(pin.translate([arena_r*2/3, -pin_l, 0]))
-		.subtract(notch.translate([0, arena_r*2/3, 0]))
-		.subtract(notch.translate([0, arena_r*1/3, 0]))
+		.subtract(notchY.translate([arena_r*1/3, 0, 0]))
+		.subtract(notchY.translate([arena_r*2/3, 0, 0]))
+		.subtract(notchX.translate([0, arena_r*2/3, 0]))
+		.subtract(notchX.translate([0, arena_r*1/3, 0]))
 		;
 	//	//
 	// Render
@@ -153,6 +159,6 @@ function main(params) {
 				radius: [notch_r+5, pin_l/2+5, notch_r+5-0.1]}))
 			.union(arena_notch_pin.intersect(CSG.cube({
 				radius: [notch_r+15, 15, 0.1]})));
-				center: [arena_r*1/3, 0, 0.1],
+				//center: [arena_r*1/3, 0, 0.1],
 	}
 }	
