@@ -6,12 +6,9 @@ const fn = 48;
 function getParameterDefinitions() {
 	return [{
         name: 'resolution',
-        type: 'choice',
-        values: [0, 1, 2, 3, 4, 5],
-        captions: ['very low (6,16)', 'low (8,24)', 'normal (12,32)', 'high (24,64)', 'very high (48,128)',
-		'ultra high (96,256)'],
-        initial: 4,
-        caption: 'Resolution:'
+        type: 'int',
+        initial: 48,
+        caption: 'Number of divisions of a circle:'
     }, {
         name: 'arena_top',
         type: 'float',
@@ -83,9 +80,7 @@ function main(params) {
         [48, 128],
         [96, 256]
 	];
-    CSG.defaultResolution3D = resolutions[params.resolution][0];
-    CSG.defaultResolution2D = resolutions[params.resolution][1];
-    const fn = 48;
+    const fn = params.resolution;
 	//
 	// Input parameters
 	//
@@ -107,6 +102,9 @@ function main(params) {
 	// Calculated:
 	//
 
+    function slope(i) {
+        return arena_base + arena_slope_d*i/steps + ((arena_top-arena_base-arena_slope_d)/(steps+1-i))
+    }
 
 	// Main cylinder
 	let arena_wall =
@@ -152,8 +150,8 @@ function main(params) {
 	var arena_base = notch_r*2;
 	var t;
 	for (i = 0; i <= steps; i++) {
-	    points1[i] = [i*arena_slope_r/steps, arena_base+((arena_top-arena_base)/(steps+1-i))];
-	    t = arena_base+((arena_top-arena_base)/(steps+1-i))-5;
+	    points1[i] = [i*arena_slope_r/steps, slope(i)];
+	    t = slope(i)-5;
 	    points2[i] = [i*arena_slope_r/steps+5,
 	                  (i < 0.73*steps) ? 0.01 :
 	                  (i > 0.9*steps) ? t :
