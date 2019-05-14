@@ -1,5 +1,5 @@
 //
-// Dyson DC34 adapter with a flat nozzle for sucking air out of Vaccum bags
+// Beyblade rink, V2
 //
 const fn = 48;
 
@@ -35,7 +35,7 @@ function getParameterDefinitions() {
     }, {
         name: 'arena_slope_r',
         type: 'float',
-        initial: 180.0,
+        initial: 195.0,
         caption: 'arena slope radius'
     }, {
         name: 'arena_slope_d',
