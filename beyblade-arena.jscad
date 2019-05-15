@@ -148,14 +148,14 @@ function main(params) {
 	var points1 = Array(steps+4);
 	var points2 = Array(steps+4);
 	var arena_base = notch_r*2;
-	var t;
+	var t, th, th2;
 	for (i = 0; i <= steps; i++) {
 	    points1[i] = [i*arena_slope_r/steps, slope(i)];
 	    t = slope(i)-5;
 	    points2[i] = [i*arena_slope_r/steps+5,
-	                  (i < 0.73*steps) ? 0.01 :
-	                  (i > 0.9*steps) ? t :
-	                  min(t, (i-0.75*steps)*0.6*arena_slope_r/steps+5)];
+	                  (i < 0.93*steps) ? 0.01 :
+	                  (i > 0.95*steps) ? t :
+	                  min(t, (i-0.93*steps)*0.6*arena_slope_r/steps+5)];
 	}
 	points1[steps+1] = [arena_r, arena_top];
 	points1[steps+2] = [arena_r, 0];
@@ -167,10 +167,12 @@ function main(params) {
 	arena_qtr2 = rotate_extrude({fn:fn}, polygon({points: points2}));
 
 	var arena_qtr = difference(arena_qtr1, arena_qtr2);
-    for (i = 1; i < 11; i++) {
+    for (i = 1; i < 15; i++) {
         t = (i & 1) ? base_cut(i*(arena_base+1), 2, arena_base-1)
                     : middle_cut(i*(arena_base+1), 2, (arena_base-3)/2).translate([0, 0, arena_base/2]);
-        t2 = middle_cut((i + 0.5)*(arena_base+1), 0, (arena_base-3)/4).translate([0, 0, 3*arena_base/4]);
+        th = slope((i + 0.5)*(arena_base+1)*steps/arena_slope_r); // height of slope
+        th2 = (th-1-arena_base/2)/2 - 1;
+        t2 = middle_cut((i + 0.5)*(arena_base+1), 0, th2).translate([0, 0, th2 + 1 + 2*arena_base/4]);
         arena_qtr = difference(arena_qtr, t, t2);
     }
     
@@ -178,8 +180,8 @@ function main(params) {
         intersection(
             arena_qtr,
 	        cube({
-    			center: [false, false, false],
-    			size: [arena_r, arena_r, arena_top]
+    			center: [false, false, true],
+    			size: [arena_r, arena_r, arena_top*2]
     	    })
 		);
 
