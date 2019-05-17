@@ -1,7 +1,6 @@
 //
 // Beyblade rink, V2
 //
-const fn = 48;
 
 function getParameterDefinitions() {
 	return [{
@@ -9,6 +8,11 @@ function getParameterDefinitions() {
         type: 'int',
         initial: 48,
         caption: 'Number of divisions of a circle:'
+    }, {
+        name: 'layer_h',
+        type: 'float',
+        initial: 0.2,
+        caption: 'Layer thickness:'
     }, {
         name: 'arena_top',
         type: 'float',
@@ -67,8 +71,9 @@ function base_cut(r, w, h) {
 }
 
 function middle_cut(r, w, h) {
-    var c1 = base_cut(r, w, h);
-    return union(c1, c1.rotateX(180));
+    var c1 = base_cut(r, 0, h+w/2);
+    var c2 = base_cut(r, w, h).rotateX(180);
+    return union(c1, c2);
 }
 
 function main(params) {
@@ -96,14 +101,28 @@ function main(params) {
 	var notch_l = params.notch_l;
 	var notch_r = params.notch_r;
 	var pin_l = notch_l - 2;
-	const steps = 60;
+	var arena_base = notch_r*2;
+	const steps = (arena_top-arena_base)/params.layer_h;
 
-	//
-	// Calculated:
-	//
+    //
+    // arena desired slope, x in the normalized range [0,1], 0 being the center and 1 being the edge
+    //
+    function slope(x) {
+        return arena_base + arena_slope_d*x + ((arena_top-arena_base-arena_slope_d)/(101-x*100));
+        //return arena_base + arena_slope_d*i/steps + ((arena_top-arena_base-arena_slope_d)/(steps+1-i));
+    }
 
-    function slope(i) {
-        return arena_base + arena_slope_d*i/steps + ((arena_top-arena_base-arena_slope_d)/(steps+1-i))
+    // given seartch range[l, h] and expected y, return the desired x
+    function inv_slope(l, h, y) {
+        var mid=(l+h)/2;
+        if ((h-l) < 0.001) {
+            return (h+l)/2;
+        }
+        if (slope(mid) < y) {
+            return inv_slope(mid, h, y);
+        } else {
+            return inv_slope(l, mid, y);
+        }
     }
 
 	// Main cylinder
@@ -145,33 +164,29 @@ function main(params) {
             )
     	);
     
-	var points1 = Array(steps+4);
-	var points2 = Array(steps+4);
-	var arena_base = notch_r*2;
+	var points = Array(steps+4);
 	var t, th, th2;
-	for (i = 0; i <= steps; i++) {
-	    points1[i] = [i*arena_slope_r/steps, slope(i)];
-	    t = slope(i)-5;
-	    points2[i] = [i*arena_slope_r/steps+5,
-	                  (i < 0.93*steps) ? 0.01 :
-	                  (i > 0.95*steps) ? t :
-	                  min(t, (i-0.93*steps)*0.6*arena_slope_r/steps+5)];
+	points[0] = [0, arena_base];
+    var last_x = 0;
+    var x;
+    for (i = 1; i <= steps; i++) {
+        x = inv_slope(last_x/arena_slope_r, 1, arena_base+i/steps*(arena_top-arena_base));
+	    points[i] = [x*arena_slope_r
+	    , arena_base+i*(arena_top-arena_base)/steps];
+	    last_x = x;
 	}
-	points1[steps+1] = [arena_r, arena_top];
-	points1[steps+2] = [arena_r, 0];
-	points1[steps+3] = [0, 0];
-	points2[steps+1] = [arena_r+5, arena_top+5];
-	points2[steps+2] = [arena_r+5, 0];
-	points2[steps+3] = [0, 0];
-	arena_qtr1 = rotate_extrude({fn:fn}, polygon({points: points1}));
-	arena_qtr2 = rotate_extrude({fn:fn}, polygon({points: points2}));
-
-	var arena_qtr = difference(arena_qtr1, arena_qtr2);
+	points[steps+1] = [arena_r, arena_top];
+	points[steps+2] = [arena_r, 0];
+	points[steps+3] = [0, 0];
+	arena_qtr1 = rotate_extrude({fn:fn}, polygon({points: points}));
+    arena_qtr2 = cylinder({h:arena_top, r1:arena_r - 10, r2:arena_r});
+	var arena_qtr = intersection(arena_qtr1, arena_qtr2);
     for (i = 1; i < 15; i++) {
         t = (i & 1) ? base_cut(i*(arena_base+1), 2, arena_base-1)
                     : middle_cut(i*(arena_base+1), 2, (arena_base-3)/2).translate([0, 0, arena_base/2]);
-        th = slope((i + 0.5)*(arena_base+1)*steps/arena_slope_r); // height of slope
-        th2 = (th-1-arena_base/2)/2 - 1;
+        th = slope((i + 0.5)*(arena_base+1)/arena_slope_r); // height of slope
+        // for i == 14 we do an ugly patch because the steep slope somehow produces a hole too big
+        th2 = min(arena_base+1, (th-arena_base/2))/2-1;
         t2 = middle_cut((i + 0.5)*(arena_base+1), 0, th2).translate([0, 0, th2 + 1 + 2*arena_base/4]);
         arena_qtr = difference(arena_qtr, t, t2);
     }
