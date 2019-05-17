@@ -70,6 +70,10 @@ function base_cut(r, w, h) {
     ).rotateZ(360/32);
 }
 
+//function vertical_cut(r1, h1, r2, h2, r3, h3) {
+//    return 	rotate_extrude({fn:16}, polygon({points: [[r1,h1], [r2, h2], [r3, h3]]})).rotateZ(360/32);
+//}
+
 function middle_cut(r, w, h) {
     var c1 = base_cut(r, 0, h+w/2);
     var c2 = base_cut(r, w, h).rotateX(180);
@@ -186,8 +190,11 @@ function main(params) {
                     : middle_cut(i*(arena_base+1), 2, (arena_base-3)/2).translate([0, 0, arena_base/2]);
         th = slope((i + 0.5)*(arena_base+1)/arena_slope_r); // height of slope
         // for i == 14 we do an ugly patch because the steep slope somehow produces a hole too big
-        th2 = min(arena_base+1, (th-arena_base/2))/2-1;
-        t2 = middle_cut((i + 0.5)*(arena_base+1), 0, th2).translate([0, 0, th2 + 1 + 2*arena_base/4]);
+        //if (i == 14) {
+        //    t2 = vertical_cut((i + 0.5)*(arena_base+1), 0, (i + 0.5)*(arena_base+1), arena_base, i*(arena_base+1), arena_base/2);
+        //} else {
+            t2 = middle_cut((i + 0.5)*(arena_base+1), 0, th2).translate([0, 0, th2 + 1 + 2*arena_base/4]);
+        //}
         arena_qtr = difference(arena_qtr, t, t2);
     }
     
