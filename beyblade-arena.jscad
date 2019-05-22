@@ -6,12 +6,12 @@ function getParameterDefinitions() {
 	return [{
         name: 'resolution',
         type: 'int',
-        initial: 48,
+        initial: 12,
         caption: 'Number of divisions of a circle:'
     }, {
         name: 'layer_h',
         type: 'float',
-        initial: 0.2,
+        initial: 1,
         caption: 'Layer thickness:'
     }, {
         name: 'arena_top',
@@ -56,8 +56,8 @@ function getParameterDefinitions() {
     }, {
         name: 'part',
         type: 'choice',
-        values: ['piece', 'test_pin', 'test_notch'],
-        captions: ['piece',  'test block for pin', 'test block for notch'],
+        values: ['piece', 'connecting_pin'],
+        captions: ['piece',  'connecting pin'],
         initial: 'piece',
         caption: 'Part:'
     }];
@@ -70,9 +70,9 @@ function base_cut(r, w, h) {
     ).rotateZ(360/32);
 }
 
-//function vertical_cut(r1, h1, r2, h2, r3, h3) {
-//    return 	rotate_extrude({fn:16}, polygon({points: [[r1,h1], [r2, h2], [r3, h3]]})).rotateZ(360/32);
-//}
+function vertical_cut(r1, h1, r2, h2, r3, h3) {
+    return 	rotate_extrude({fn:16}, polygon({points: [[r1,h1], [r2, h2], [r3, h3]]})).rotateZ(360/32);
+}
 
 function middle_cut(r, w, h) {
     var c1 = base_cut(r, 0, h+w/2);
@@ -106,6 +106,7 @@ function main(params) {
 	var notch_r = params.notch_r;
 	var pin_l = notch_l - 2;
 	var arena_base = notch_r*2;
+	const arena_cut = 10;
 	const steps = (arena_top-arena_base)/params.layer_h;
 
     //
@@ -119,7 +120,7 @@ function main(params) {
     // given seartch range[l, h] and expected y, return the desired x
     function inv_slope(l, h, y) {
         var mid=(l+h)/2;
-        if ((h-l) < 0.001) {
+        if ((h-l) < 0.0001) {
             return (h+l)/2;
         }
         if (slope(mid) < y) {
@@ -183,18 +184,23 @@ function main(params) {
 	points[steps+2] = [arena_r, 0];
 	points[steps+3] = [0, 0];
 	arena_qtr1 = rotate_extrude({fn:fn}, polygon({points: points}));
-    arena_qtr2 = cylinder({h:arena_top, r1:arena_r - 10, r2:arena_r});
+    arena_qtr2 = cylinder({h:arena_top, r1:arena_r - arena_cut, r2:arena_r});
 	var arena_qtr = intersection(arena_qtr1, arena_qtr2);
-    for (i = 1; i < 15; i++) {
-        t = (i & 1) ? base_cut(i*(arena_base+1), 2, arena_base-1)
+    for (i = 1; (i*(arena_base+1) < arena_r - arena_cut - 1); i++) {
+        t = (i & 1) ? base_cut(i*(arena_base+1), 0, arena_base)
                     : middle_cut(i*(arena_base+1), 2, (arena_base-3)/2).translate([0, 0, arena_base/2]);
         th = slope((i + 0.5)*(arena_base+1)/arena_slope_r); // height of slope
+        th2 = min(arena_base+1, (th-arena_base/2))/2-1;
         // for i == 14 we do an ugly patch because the steep slope somehow produces a hole too big
-        //if (i == 14) {
-        //    t2 = vertical_cut((i + 0.5)*(arena_base+1), 0, (i + 0.5)*(arena_base+1), arena_base, i*(arena_base+1), arena_base/2);
-        //} else {
+        if ((i+1)*(arena_base+1) > arena_r - arena_cut - 1) {
+            t2 = vertical_cut(
+                arena_r - arena_cut - 1, (arena_r - arena_cut - 1) - i*(arena_base+1),
+                arena_r - arena_cut + 2*arena_base/arena_top*arena_cut - 1,
+                1.5 * arena_base + 10.5, // 8,15 are fudged to fit current parameters
+                i*(arena_base+1) + 1.5, arena_base + 0.5);
+        } else {
             t2 = middle_cut((i + 0.5)*(arena_base+1), 0, th2).translate([0, 0, th2 + 1 + 2*arena_base/4]);
-        //}
+        }
         arena_qtr = difference(arena_qtr, t, t2);
     }
     
@@ -213,17 +219,11 @@ function main(params) {
 	switch (params.part) {
 		case 'piece':
 			return arena_qtr;
-		case 'test_pin':
-			return arena_notch_pin.intersect(CSG.cube({
-			center: [0, arena_r*1/3, notch_r],
-			radius: [notch_l+5, notch_r+5, notch_r+5]}));
-		case 'test_notch':
-			return arena_notch_pin
-			.intersect(CSG.cube({
-				center: [arena_r*1/3, -pin_l/2, notch_r+0.1],
-				radius: [notch_r+5, pin_l/2+5, notch_r+5-0.1]}))
-			.union(arena_notch_pin.intersect(CSG.cube({
-				radius: [notch_r+15, 15, 0.1]})));
-				//center: [arena_r*1/3, 0, 0.1],
+		case 'connecting_pin':
+			return intersection(
+		        middle_cut((arena_base+1), 2, (arena_base-3)/2).translate([0, 0, arena_base/2]),
+		        rotate_extrude({fn:16, startAngle: -45/2, angle: 45}, polygon([
+		            [0, 0], [arena_slope_r, 0], [arena_slope_r, arena_base], [0, arena_base]]))
+		        );
 	}
 }	
