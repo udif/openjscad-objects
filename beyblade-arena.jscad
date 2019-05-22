@@ -6,7 +6,7 @@ function getParameterDefinitions() {
 	return [{
         name: 'resolution',
         type: 'int',
-        initial: 12,
+        initial: 48,
         caption: 'Number of divisions of a circle:'
     }, {
         name: 'layer_h',
@@ -190,7 +190,7 @@ function main(params) {
         t = (i & 1) ? base_cut(i*(arena_base+1), 0, arena_base)
                     : middle_cut(i*(arena_base+1), 2, (arena_base-3)/2).translate([0, 0, arena_base/2]);
         th = slope((i + 0.5)*(arena_base+1)/arena_slope_r); // height of slope
-        th2 = min(arena_base+1, (th-arena_base/2))/2-1;
+        th2 = Math.min(arena_base+1, (th-arena_base/2))/2-1;
         // for i == 14 we do an ugly patch because the steep slope somehow produces a hole too big
         if ((i+1)*(arena_base+1) > arena_r - arena_cut - 1) {
             t2 = vertical_cut(
