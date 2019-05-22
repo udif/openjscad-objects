@@ -169,6 +169,10 @@ function main(params) {
             )
     	);
     
+	function arena_pos(i) {
+		return (3+i*(arena_base+1));
+	}
+	
 	var points = Array(steps+4);
 	var t, th, th2;
 	points[0] = [0, arena_base];
@@ -186,20 +190,20 @@ function main(params) {
 	arena_qtr1 = rotate_extrude({fn:fn}, polygon({points: points}));
     arena_qtr2 = cylinder({h:arena_top, r1:arena_r - arena_cut, r2:arena_r});
 	var arena_qtr = intersection(arena_qtr1, arena_qtr2);
-    for (i = 1; (i*(arena_base+1) < arena_r - arena_cut - 1); i++) {
-        t = (i & 1) ? base_cut(i*(arena_base+1), 0, arena_base)
-                    : middle_cut(i*(arena_base+1), 2, (arena_base-3)/2).translate([0, 0, arena_base/2]);
-        th = slope((i + 0.5)*(arena_base+1)/arena_slope_r); // height of slope
+    for (i = 1; (arena_pos(i) < arena_r - arena_cut - 1); i++) {
+        t = (i & 1) ? base_cut(arena_pos(i), 0, arena_base)
+                    : middle_cut(arena_pos(i), 2, (arena_base-3)/2).translate([0, 0, arena_base/2]);
+        th = slope(arena_pos(i + 0.5)/arena_slope_r); // height of slope
         th2 = Math.min(arena_base+1, (th-arena_base/2))/2-1;
         // for i == 14 we do an ugly patch because the steep slope somehow produces a hole too big
-        if ((i+1)*(arena_base+1) > arena_r - arena_cut - 1) {
+        if (arena_pos(i+1) > arena_r - arena_cut - 1) {
             t2 = vertical_cut(
-                arena_r - arena_cut - 1, (arena_r - arena_cut - 1) - i*(arena_base+1),
-                arena_r - arena_cut + 2*arena_base/arena_top*arena_cut - 1,
-                1.5 * arena_base + 10.5, // 8,15 are fudged to fit current parameters
-                i*(arena_base+1) + 1.5, arena_base + 0.5);
+                arena_r - arena_cut + 0.5, (arena_r - arena_cut + 3) - arena_pos(i),
+                arena_r - arena_cut + 2*arena_base/arena_top*arena_cut - 1.5,
+                1.5 * arena_base + 9, // 8,15 are fudged to fit current parameters
+                arena_pos(i - 0.5) + 1.5, 1.5 * arena_base + 0.5);
         } else {
-            t2 = middle_cut((i + 0.5)*(arena_base+1), 0, th2).translate([0, 0, th2 + 1 + 2*arena_base/4]);
+            t2 = middle_cut(arena_pos(i + 0.5), 0, th2).translate([0, 0, th2 + 1 + 2*arena_base/4]);
         }
         arena_qtr = difference(arena_qtr, t, t2);
     }
