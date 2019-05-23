@@ -173,6 +173,7 @@ function main(params) {
 		return (3+i*(arena_base+1));
 	}
 	
+			
 	var points = Array(steps+4);
 	var t, th, th2;
 	points[0] = [0, arena_base];
@@ -222,6 +223,17 @@ function main(params) {
 	//
 	switch (params.part) {
 		case 'piece':
+			return difference(
+				union(
+					arena_qtr,
+					rotate_extrude(
+						{fn:16, startAngle:270+90/8, angle:90*3/4},
+						square({size:[arena_r - arena_cut, arena_base], center:false}))
+				),
+				cube({size:[arena_r - arena_cut, 0.2, arena_base], center:false}).rotateZ(3*90/8),
+				cube({size:[arena_r - arena_cut, 0.2, arena_base], center:false}).rotateZ(5*90/8)
+			);
+
 			return arena_qtr;
 		case 'connecting_pin':
 			return intersection(
