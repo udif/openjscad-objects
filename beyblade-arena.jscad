@@ -63,23 +63,6 @@ function getParameterDefinitions() {
     }];
 }
 
-function base_cut(r, w, h) {
-    return difference(
-        cylinder({r1:r+w/2+h, r2:r+w/2, h:h, fn:16}),
-        cylinder({r1:r-w/2-h, r2:r-w/2, h:h, fn:16})
-    ).rotateZ(360/32);
-}
-
-function vertical_cut(r1, h1, r2, h2, r3, h3) {
-    return 	rotate_extrude({fn:16}, polygon({points: [[r1,h1], [r2, h2], [r3, h3]]})).rotateZ(360/32);
-}
-
-function middle_cut(r, w, h) {
-    var c1 = base_cut(r, 0, h+w/2);
-    var c2 = base_cut(r, w, h).rotateX(180);
-    return union(c1, c2);
-}
-
 function main(params) {
     var resolutions = [
         [6, 16],
@@ -108,6 +91,35 @@ function main(params) {
 	var arena_base = notch_r*2;
 	const arena_cut = 10;
 	const steps = (arena_top-arena_base)/params.layer_h;
+
+	function base_cut(r, w, h) {
+		var points;
+		if (w < 0.001) {
+			points = [[r+h, 0], [r, h], [r-h, 0]];
+		} else {
+			points = [[r+h+w/2, 0], [r+w/2, h], [r-w/2, h], [r-h-w/2, 0]];
+		}
+		return polygon_cut(points);
+	}
+
+	function middle_cut(r, w, h) {
+		points = [
+			[r+h, 0], [r, h], [r-h, 0],
+			[r-w/2, -h+w/2], [r+w/2, -h+w/2]
+		];
+		return polygon_cut(points);
+	}
+
+	function polygon_cut(points) {
+		return 	union(
+			rotate_extrude(
+				{fn:16, startAngle:270, angle:90/8},
+				polygon({points: points})),
+			rotate_extrude(
+				{fn:16, startAngle:360-90/8, angle:90/8},
+				polygon({points: points}))
+		);
+	}
 
     //
     // arena desired slope, x in the normalized range [0,1], 0 being the center and 1 being the edge
@@ -198,11 +210,11 @@ function main(params) {
         th2 = Math.min(arena_base+1, (th-arena_base/2))/2-1;
         // for i == 14 we do an ugly patch because the steep slope somehow produces a hole too big
         if (arena_pos(i+1) > arena_r - arena_cut - 1) {
-            t2 = vertical_cut(
-                arena_r - arena_cut + 0.5, (arena_r - arena_cut + 3) - arena_pos(i),
-                arena_r - arena_cut + 2*arena_base/arena_top*arena_cut - 1.5,
-                1.5 * arena_base + 9, // 8,15 are fudged to fit current parameters
-                arena_pos(i - 0.5) + 1.5, 1.5 * arena_base + 0.5);
+            t2 = polygon_cut([
+                [arena_r - arena_cut + 0.5, (arena_r - arena_cut + 3) - arena_pos(i)],
+                [arena_r - arena_cut + 2*arena_base/arena_top*arena_cut - 1.5,
+                1.5 * arena_base + 9], // 8,15 are fudged to fit current parameters
+                [arena_pos(i - 0.5) + 1.5, 1.5 * arena_base + 0.5]]);
         } else {
             t2 = middle_cut(arena_pos(i + 0.5), 0, th2).translate([0, 0, th2 + 1 + 2*arena_base/4]);
         }
@@ -223,18 +235,8 @@ function main(params) {
 	//
 	switch (params.part) {
 		case 'piece':
-			return difference(
-				union(
-					arena_qtr,
-					rotate_extrude(
-						{fn:16, startAngle:270+90/8, angle:90*3/4},
-						square({size:[arena_r - arena_cut, arena_base], center:false}))
-				),
-				cube({size:[arena_r - arena_cut, 0.2, arena_base], center:false}).rotateZ(3*90/8),
-				cube({size:[arena_r - arena_cut, 0.2, arena_base], center:false}).rotateZ(5*90/8)
-			);
-
 			return arena_qtr;
+
 		case 'connecting_pin':
 			return intersection(
 		        middle_cut((arena_base+1), 2, (arena_base-3)/2).translate([0, 0, arena_base/2]),
