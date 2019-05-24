@@ -111,13 +111,11 @@ function main(params) {
 	}
 
 	function polygon_cut(points) {
+		var t = linear_extrude({height:10},	polygon({points: points}));
+
 		return 	union(
-			rotate_extrude(
-				{fn:16, startAngle:270, angle:90/8},
-				polygon({points: points})),
-			rotate_extrude(
-				{fn:16, startAngle:360-90/8, angle:90/8},
-				polygon({points: points}))
+			mirror([0, 0, 1], t.rotateX(-90)),
+			t.rotateX(90).rotateZ(90)
 		);
 	}
 
@@ -203,7 +201,7 @@ function main(params) {
 	arena_qtr1 = rotate_extrude({fn:fn}, polygon({points: points}));
     arena_qtr2 = cylinder({h:arena_top, r1:arena_r - arena_cut, r2:arena_r});
 	var arena_qtr = intersection(arena_qtr1, arena_qtr2);
-    for (i = 1; (arena_pos(i) < arena_r - arena_cut - 1); i++) {
+    for (i = 1; (arena_pos(i) < arena_r - arena_cut - arena_base); i++) {
 		if ((i & 1) == 0){
 			t = middle_cut(arena_pos(i), 2, (arena_base-3)/2).translate([0, 0, arena_base/2]);
 			th = slope(arena_pos(i + 0.5)/arena_slope_r); // height of slope
