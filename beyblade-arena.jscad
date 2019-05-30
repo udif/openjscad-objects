@@ -226,10 +226,10 @@ function main(params) {
 			return arena_qtr;
 
 		case 'connecting_pin':
-			return intersection(
-		        middle_cut((arena_base+1), 2, (arena_base-3)/2).translate([0, 0, arena_base/2]),
-		        rotate_extrude({fn:16, startAngle: -45/2, angle: 45}, polygon([
-		            [0, 0], [arena_slope_r, 0], [arena_slope_r, arena_base], [0, arena_base]]))
-		        );
+		pin_height = (arena_base-3)/2;
+		    return intersection(
+		        translate([100, 0, 0], cube({size:[40, 40, 2*(pin_height-0.6)], center:true})),
+			    scale([1, 1.5, 1], middle_cut(100, 2, pin_height-0.2))
+			);
 	}
 }	
