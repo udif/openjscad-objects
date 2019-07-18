@@ -1,5 +1,5 @@
 //
-// Mount for Yi Smart Dash camera
+// Mount for VBox TV smart gateway
 //
 function getParameterDefinitions() {
 	return [{
@@ -27,6 +27,7 @@ var base_m = 30; // base margins
 var hook_r = 1;
 var base_total = ((pin_loc(19)-pin_loc(0))+base_m);
 var hook_start = (-base_total+base_m)/2;
+var hook_r = 1;
 var base_hole = 8;
 
 function pin_loc(pos) {
@@ -48,38 +49,42 @@ function main(params) {
     CSG.defaultResolution3D = resolutions[params.resolution][0];
     CSG.defaultResolution2D = resolutions[params.resolution][1];
 
-	var base_w = (params.part == 'flat') ? 15 : 10;
-	var hook_dz = (params.part == 'flat') ? 10 : 3;
+	const base_w = (params.part == 'flat') ? 15 : 10;
+	const hook_dz = (params.part == 'flat') ? base_z*sqrt(2)+10 : 3;
 
-	var base = cube({
-		size: [base_w, base_total, base_z],
-		center: [true, true, false]
-	});
-	
-	var hole = cylinder({
+	const hole = cylinder({
 		start: [ 0, 0, 0],
 		end:   [0, 0, 4],
 		r1: 2,
 		r2: 4});
 
-		var hook = cylinder({
-		start: [ 0, 0, base_z-hook_r],
-		end:   [-1.0*hook_dz, 0, base_z+hook_r+hook_dz],
-		r: 1})
-	.intersect(cube({size: [10, 10, hook_dz], center: [true, true, false]}));
+	var base = difference (
+        cube({
+        	size: [base_w, base_total, base_z],
+        	center: [false, true, false]
+		}),
+		hole.translate([base_w/2+2, -(base_total/2 - base_hole), 0]),
+		hole.translate([base_w/2+2,  (base_total/2 - base_hole), 0])
+    ).rotateY(-135);
+	
+
+    const hook = difference(cylinder({
+        h: hook_dz,
+		r: hook_r}).translate([hook_r, 0, 0]).rotateY(45), 
+		cube({size:2*sqrt(2)*hook_r, center:true}). translate([hook_r*sqrt(2), 0, -sqrt(2)*hook_r])
+	).rotateY(-135);
 	console.log("start");
 	console.log(hook_start);
 	for (i = 0; i <= 19; i++) {
-		base = base.union(hook.translate([0, hook_start+pin_loc(i), 0]));
+		base = union(base, hook.translate([0, hook_start+pin_loc(i), 0]));
 	}
+	base = difference(base, cube({size: [hook_dz, base_total, base_z]}).translate([-hook_dz, -base_total/2, -base_z+0.2]));
 	//
 	// Render
 	//
 	//return base;//hook.union(hook.translate([0, 10, 0]));
 	switch (params.part) {
 		case 'flat':
-			return base
-				.subtract(hole.translate([0, -(base_total/2 - base_hole), 0]))
-				.subtract(hole.translate([0,  (base_total/2 - base_hole), 0]));
+			return base;
 	}
 }	
