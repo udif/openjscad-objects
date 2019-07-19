@@ -25,9 +25,9 @@ function folding_side(w, h, d, mask=15, tabmask=0, malemask=0, femalemask=0) {
 	var tabc = cube({size:[2, 2, 0.2], center:[true, true, false]});
 	// a vertical tab for locking parts together
 	var tabmv = cube({size:[1.9,   d-1-e, d-1-e], center:[true, true, false]});
-	var tabmh = cube({size:[d-1-e, 1.9,   d-1-e], center:[true, true, false]});
+	var tabmh = rotate([0, 0, 90], tabmv);
 	var tabfv = translate([0, 0, 1], cube({size:[2, d, d-1], center:[true, true, false]}));
-	var tabfh = translate([0, 0, 1], cube({size:[d, 2, d-1], center:[true, true, false]}));
+	var tabfh = rotate([0, 0, 90], tabfv);
 	var tabs = union(
 		(malemask &  1) ? translate([-w/2+d/2,  0/2, 0], tabmh) : tabc,
 		(malemask &  2) ? translate([ w/2-d/2,  0/2, 0], tabmh) : tabc,
@@ -68,9 +68,9 @@ function main(params) {
 		translate([0, 0, 0], folding_side(x, x, 5, 15, 80, 2)),
 		translate([-x, 0, 0], folding_side(x, x, 5, 15, 0)),
 		translate([-2*x, 0, 0], folding_side(x, x, 5, 15, 0)),
-		translate([-3*x, 0, 0], folding_side(x, x, 5, 15, 5, 0, 1)),
+		translate([-3*x, 0, 0], folding_side(x, x, 5, 15, 5, 0, 13)),
 		translate([-x, x, 0], folding_side(x, x, 5, 15, 20, 4)),
-		translate([-x, -x, 0], folding_side(x, x, 5, 15, 65, 0, 8)),
+		translate([-x, -x, 0], folding_side(x, x, 5, 15, 65, 8)),
 		// This cross makes sure all 6 sides are fully connected at height 0
 		translate([-1.5*x, 0, 0], cube({size:[4*x, x, 0.2], center:[true, true, false]})),
 		translate([-x, 0, 0], cube({size:[x, 3*x, 0.2], center:[true, true, false]}))
