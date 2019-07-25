@@ -114,7 +114,7 @@ function main(params) {
 		translate([-x, x, 0], folding_side(x, x, 5, 15, 20, 4)),
 		translate([-x, -x, 0], folding_side(x, x, 5, 15, 65, 8)),
 		// This cross makes sure all 6 sides are fully connected at height 0
-		translate([-1.5*x, 0, 0], cube({size:[4*x, x, 0.2], center:[true, true, false]})),
-		translate([-x, 0, 0], cube({size:[x, 3*x, 0.2], center:[true, true, false]}))
+		translate([-1.5*x, 0, 0], folding_side(4*x, x, 0.2)),
+		translate([-x, 0, 0], folding_side(x, 3*x, 0.2))
 	);
 }
