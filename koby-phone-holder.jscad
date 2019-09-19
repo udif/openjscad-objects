@@ -19,6 +19,7 @@ function rounded_cube_corner(r, fn) {
 
 //
 // Rounded cube
+// parameters identical to cube() with an extra 'roundradius' parameter
 //
 function rcube(s) {
 	if ('center' in s) {
@@ -104,6 +105,13 @@ function rcube(s) {
 	                  cent[2] ? 0 : s.size[2]/2], ccube);
 }
 
+function prism(w, h) {
+	return difference(
+		cube({size:[w, h, h], center:true}).rotateX(45),
+		translate([0, 0, -2*h], cube({size:[2*w, 2*h, 2*h], center:[true, true, false]}))
+	).rotateX(-45);
+		
+}
 function main(params) {
 	let w = 95; // overall width
 	let h = 135; // overall height
@@ -119,12 +127,24 @@ function main(params) {
 	let rr = 1;
 	let fn = 64;
 	
+	//return union(rcube({size:10}), translate([12, 0, 0], cube({size:10})));
 	return difference(
 		// outer box, from which we begin to cut out parts
 		union(
+			// wide base
 			rcube({fn:fn, size:[w, h, d4], center:[true, false, false], roundradius:rr}),
-			rcube({fn:fn, size:[w-2*w1, h, d], center:[true, false, false], roundradius:rr})
+			// narrower part
+			rcube({fn:fn, size:[w-2*w1, h, d], center:[true, false, false], roundradius:rr}),
+			// hanging loop
+			translate([0, 70, -23], rcube({fn:fn, size:[w, 20, 25], center:[true, false, false], roundradius:rr})),
+			translate([0, 70, -23], cube({fn:fn, size:[w, rr, 25], center:[true, false, false]})),
+			
+			translate([0, 60, 0], cube({size:[w, 23, 5], center:[true, true, false]})),
+			// don't make me require supports
+			translate([0, 70-23/2, -23/2], prism(w, 23))
 		),
+		// cut hole in hanger
+		translate([0, 0, -18], cube({fn:fn, size:[w-2*w1, h, 18], center:[true, false, false]})),
 		// cut out internal pocket for phone
 		translate([0, h1, d1], rcube({fn:fn, size:[w-2*(w1+w2), h, d3], roundradius:rr, center:[true, false, false]})),
 		// cut out front opening
