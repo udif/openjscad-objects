@@ -155,24 +155,29 @@ function folding_side(w, h, d, mask=15, tabmask=0, malemask=0, femalemask=0, emp
 }
 
 function front() {
-	b = translate([0,0,11.65+pcb_z+6], simple_hex_bolt().rotateX(180))
+	//b = translate([0,0,11.65+pcb_z+6], simple_hex_bolt().rotateX(180))
+	let l = lock_slot(pcb_y+6).rotateX(-90).rotateY(-90)
+	let lb = l.getBounds()
 	return difference(
 		// front box
 		union(
 			folding_side(front_x, front_y, front_w, 15, 0, 14, 1),
-			cube({size:[front_hole_x, front_hole_y + 10, 11.65+pcb_z+6], center:[true, true, false]})
+			translate([       0, 0, 1 - lb[0].z], l),
+			translate([ pcb_x/2, 0, 1 - lb[0].z], l),
+			translate([-pcb_x/2, 0, 1 - lb[0].z], l)
+			//cube({size:[front_hole_x, front_hole_y + 10, 11.65+pcb_z+6], center:[true, true, false]})
 		),
 		// front cavity
-		cube({size:[front_hole_x, front_hole_y, 11.65 + pcb_z], center:[true, true, false]}),
-		cube({size:[front_hole_x, front_hole_y - 26, 20], center:[true, true, false]}),
-		translate([0, 0, front_w],
-		cube({size:[front_hole_x - 18, front_hole_y +10, 11.65 - front_w], center:[true, true, false]})),
+		cube({size:[front_hole_x, front_hole_y, 11.65 + pcb_z], center:[true, true, false]})
+		//cube({size:[front_hole_x, front_hole_y - 26, 20], center:[true, true, false]}),
+		//translate([0, 0, front_w],
+		//	cube({size:[front_hole_x - 18, front_hole_y +10, 11.65 - front_w], center:[true, true, false]})),
 		//translate([0, 0, (pcb_pins_z-pcb_z)], cube({
 		//	size:[front_hole_x, front_y-front_w,
 		//	front_z-(pcb_pins_z-pcb_z)],
 		//	center:[true, true, false]}))
-		nuts(1, b),
-		nuts(0, b)
+		//nuts(1, b),
+		//nuts(0, b)
 	);
 }
 
@@ -193,10 +198,10 @@ function back() {
 	);
 }
 
-function lock_slot () {
+function lock_slot (l) {
 	return intersection(
-		translate([2, 0, 0], cube({size:[5, 5, 20], center:[true, true, false]}).rotateZ(45)),
-		cube({size:[10, 10, 30], center:[false, true, false]})
+		translate([2, 0, 0], cube({size:[5, 5, l], center:[true, true, true]}).rotateZ(45)),
+		cube({size:[10, 10, l+1], center:[false, true, true]})
 	)
 }
 function board_tabs() {
@@ -224,7 +229,7 @@ function board_tabs() {
 
 function main(params) {
 	//return lock_slot().rotateY(-90)
-	return board_tabs()
+	//return board_tabs()
 	// last printed was 130x64 !!
 	panel = difference(
 			cube({size:[pcb_x, pcb_y, 2], center:[true, true, false]}),
