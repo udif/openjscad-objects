@@ -163,8 +163,8 @@ function front() {
 		union(
 			folding_side(front_x, front_y, front_w, 15, 0, 14, 1),
 			translate([       0, 0, 1 - lb[0].z], l),
-			translate([ pcb_x/2, 0, 1 - lb[0].z], l),
-			translate([-pcb_x/2, 0, 1 - lb[0].z], l)
+			translate([ pcb_x*.85, 0, 1 - lb[0].z], l),
+			translate([-pcb_x*.85, 0, 1 - lb[0].z], l)
 			//cube({size:[front_hole_x, front_hole_y + 10, 11.65+pcb_z+6], center:[true, true, false]})
 		),
 		// front cavity
@@ -206,30 +206,34 @@ function lock_slot (l) {
 }
 function board_tabs() {
 	tab_l = 2+pcb_z+11.65
+	tab_b = 2 // tab_base
+	lock_d = 3 // lock depth
 	return difference(
 		union(
 			// main piece
-			cube({size:[2*pcb_x, tab_l, 6+3], center:[true, false, false]}),
+			cube({size:[2*pcb_x, tab_l, 6+tab_b+lock_d], center:[true, false, false]}),
 			// side supports, should be located inside the cavities in the side panels
-			cube({size:[4+2*pcb_x, 5, 6+3], center:[true, false, false]})
+			cube({size:[4+2*pcb_x, 5, 6+tab_b+lock_d], center:[true, false, false]})
 		),
 		// slot for pcb
-		translate([0, 2, 3], cube({size:[2*pcb_x, pcb_z, 10], center:[true, false, false]})),
+		translate([0, 2, tab_b+lock_d], cube({size:[2*pcb_x, pcb_z, 10], center:[true, false, false]})),
 		// cutout for the module itself
-		translate([0, 2+pcb_z+4, 3], cube({size:[2+2*pcb_x, tab_l, 10], center:[true, false, false]})),
+		translate([0, 2+pcb_z+4, tab_b+lock_d], cube({size:[2+2*pcb_x, tab_l, 10], center:[true, false, false]})),
 		// cutout for wires
-		translate([ pcb_x/2, 0, 0], cube({size:[pcb_x-2*9.5, 2+pcb_z+4, 10], center:[true, false, false]})),
-		translate([-pcb_x/2, 0, 0], cube({size:[pcb_x-2*9.5, 2+pcb_z+4, 10], center:[true, false, false]})),
+		translate([ pcb_x/2, 0, tab_b+lock_d], cube({size:[pcb_x-2*9.5, 2+pcb_z+6, 10], center:[true, false, false]})),
+		translate([-pcb_x/2, 0, tab_b+lock_d], cube({size:[pcb_x-2*9.5, 2+pcb_z+6, 10], center:[true, false, false]})),
+		translate([ pcb_x/2, 2+pcb_z, 0], cube({size:[pcb_x-2*9.5, 6, 10], center:[true, false, false]})),
+		translate([-pcb_x/2, 2+pcb_z, 0], cube({size:[pcb_x-2*9.5, 6, 10], center:[true, false, false]})),
 		// tabs connecting to main box
-		translate([       0, tab_l-2, 0], cube({size:[5, 5, 20], center:[true, true, false]}).rotateZ(45)),
-		translate([-pcb_x/2, tab_l-2, 0], cube({size:[5, 5, 20], center:[true, true, false]}).rotateZ(45)),
-		translate([ pcb_x/2, tab_l-2, 0], cube({size:[5, 5, 20], center:[true, true, false]}).rotateZ(45))
+		translate([         0, tab_l-2, tab_b], cube({size:[5, 5, 20], center:[true, true, false]}).rotateZ(45)),
+		translate([-pcb_x*.85, tab_l-2, tab_b], cube({size:[5, 5, 20], center:[true, true, false]}).rotateZ(45)),
+		translate([ pcb_x*.85, tab_l-2, tab_b], cube({size:[5, 5, 20], center:[true, true, false]}).rotateZ(45))
 	)
 }
 
 function main(params) {
 	//return lock_slot().rotateY(-90)
-	//return board_tabs()
+	return board_tabs()
 	// last printed was 130x64 !!
 	panel = difference(
 			cube({size:[pcb_x, pcb_y, 2], center:[true, true, false]}),
