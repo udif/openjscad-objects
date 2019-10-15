@@ -25,9 +25,9 @@ front_hole_y = 130;
 
 // outer dimensions of front part
 front_w = 4;
-front_x = front_hole_x + 2*front_w;
+front_x = front_hole_x + 2*front_w + 1;
 front_y = 180; // extra room for cables
-front_z = 20;
+front_z = 28;
 
 // build a hex bolt with a cone 
 function cone_hex_bolt() {
@@ -233,7 +233,8 @@ function board_tabs() {
 
 function main(params) {
 	//return lock_slot().rotateY(-90)
-	return board_tabs()
+	if (params.part == 'board_tabs')
+		return board_tabs()
 	// last printed was 130x64 !!
 	panel = difference(
 			cube({size:[pcb_x, pcb_y, 2], center:[true, true, false]}),
@@ -245,7 +246,8 @@ function main(params) {
 	//return union(panel, translate([pcb_x, 0, 0], panel));
 	console.log(cube({size:1}));
 	let x = 20;
-	if (1) {
+	if (params.part == 'front')
+		return front();
 	return union(
 		translate([0, 0, 0], front()),
 		translate([-(front_x+front_z)/2, 0, 0], folding_side(front_z, front_y, front_w, 15, 0, 2, 1)),
@@ -258,7 +260,7 @@ function main(params) {
 			translate([-front_x/2, 0, 0], folding_side((front_x+front_z)*2, front_y, 0.2)),
 			translate([0, 0, 0], folding_side(front_x, (front_y + 2*front_z), 0.2))), front())
 	);
-	}
+
 	return union(
 		translate([o_x+5, 0, 0], front()),
 		translate([-o_x-5, 0, 0], back()),
@@ -266,10 +268,10 @@ function main(params) {
 	);
 }
 
-/*
+
 function getParameterDefinitions() {
 	return [{
-        name: 'resolution',
+/*        name: 'resolution',
         type: 'int',
         initial: 48,
         caption: 'Number of divisions of a circle:'
@@ -278,56 +280,16 @@ function getParameterDefinitions() {
         type: 'float',
         initial: 1,
         caption: 'Layer thickness:'
-    }, {
-        name: 'arena_top',
-        type: 'float',
-        initial: 60.0,
-        caption: 'Top length of Beyblade arena borders'
-    }, {
-        name: 'arena_w',
-        type: 'float',
-        initial: 3,
-        caption: 'width of the Beyblade arena borders'
-    }, {
-        name: 'arena_r',
-        type: 'float',
-        initial: 200,
-        caption: 'outer radius of the Beyblade arena'
-    }, {
-        name: 'arena_h',
-        type: 'float',
-        initial: 20,
-        caption: 'height of Beyblade arena playground'
-    }, {
-        name: 'arena_slope_r',
-        type: 'float',
-        initial: 195.0,
-        caption: 'arena slope radius'
-    }, {
-        name: 'arena_slope_d',
-        type: 'float',
-        initial: 8.0,
-        caption: 'arena slope depth'
-    }, {
-        name: 'notch_r',
-        type: 'float',
-        initial: 6,
-        caption: 'notch  radius'
-    }, {
-        name: 'notch_l',
-        type: 'float',
-        initial: 10,
-        caption: 'notch length'
-    }, {
+    }, {*/
         name: 'part',
         type: 'choice',
-        values: ['piece', 'connecting_pin'],
-        captions: ['piece',  'connecting pin'],
-        initial: 'piece',
+        values: ['box', 'front', 'board_tabs'],
+        captions: ['Box', 'Front only', 'Board Tabs'],
+        initial: 'Box',
         caption: 'Part:'
     }];
 }
-
+/*
 function main(params) {
     var resolutions = [
         [6, 16],
